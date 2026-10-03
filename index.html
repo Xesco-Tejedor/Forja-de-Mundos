@@ -864,6 +864,35 @@ document.addEventListener('change', async ev => {
 // selector de gancho en misiones
 const _vc = vCampana; vCampana = function (p) { let h = _vc(p); if (ui.tab === 'campana' && ui.sub === 'misiones' && ui.hookPick) { const g = p.ents.filter(e => e.type === 'gancho'); h = h.replace('<div class="kan">', `<div class="card" style="margin-bottom:12px"><label>Elige el gancho que quieres convertir en misión</label><select id="hookSel"><option value="">—</option>${g.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('')}</select>${g.length ? '' : '<p class="mut sm">Aún no hay ganchos.</p>'}</div><div class="kan">`); } return h; };
 
+// ---------- fichas de personaje jugador ----------
+const PLAYER_FIELDS = [['jugador','Jugador'],['concepto','Concepto / clase / especie'],['aspecto','Aspecto escrito'],['rasgos','Rasgos, ideales y defectos'],['atributos','Atributos y estadísticas (campos libres)'],['equipo','Equipo, recursos y habilidades'],['trasfondo','Trasfondo'],['notas','Notas de la partida']];
+let playerEdit = null;
+function players(p) { if (!Array.isArray(p.jugadores)) p.jugadores=[]; return p.jugadores; }
+function newPlayer() { return Object.assign({id:uid(),nombre:'Personaje nuevo'},Object.fromEntries(PLAYER_FIELDS.map(([k])=>[k,'']))); }
+function playerDoc(c) { return {id:uid(),name:'Ficha de '+c.nombre,premise:'Personaje jugador · '+cur().name,ents:[],sesiones:[],misiones:[],jugadores:[c]}; }
+function vPlayers(p) {
+  const list=players(p), c=list.find(x=>x.id===playerEdit);
+  if(c) return `<div class="row spread"><h2 class="h2">Ficha de personaje jugador</h2><button class="btn" data-act="playerBack">← Todas las fichas</button></div><p class="mut">Se guarda al escribir. Campos libres para cualquier sistema; no calcula reglas ni genera retratos.</p><div class="card"><label>Nombre del personaje</label><input data-player="nombre" value="${esc(c.nombre)}">${PLAYER_FIELDS.map(([k,l])=>`<label>${l}</label>${k==='jugador'||k==='concepto'?`<input data-player="${k}" value="${esc(c[k])}">`:`<textarea data-player="${k}" rows="${k==='atributos'?5:3}" placeholder="${k==='atributos'?'Ej.: Fuerza: 12; Agilidad: +2; Salud: 18/24. Añade los atributos de tu sistema.':''}">${esc(c[k])}</textarea>`}`).join('')}<div class="row sec"><button class="btn pri" data-act="playerPDF" data-v="${c.id}">📄 PDF de esta ficha</button><button class="btn" data-act="playerMD" data-v="${c.id}">📝 Markdown</button><button class="btn" data-act="playerJSON" data-v="${c.id}">💾 JSON</button><button class="btn" data-act="playerCopy" data-v="${c.id}">Duplicar</button><button class="btn dan" data-act="playerDelete" data-v="${c.id}">Eliminar</button></div></div>`;
+  return `<h2 class="h2">Personajes jugadores</h2><p class="mut">Fichas editables con aspecto escrito, atributos personalizables, equipo y trasfondo. Independientes del sistema. Se guardan con este universo y se incluyen en sus exportaciones PDF, Markdown y JSON.</p><div class="row sec"><button class="btn pri" data-act="playerNew">＋ Crear ficha</button><button class="btn amb" data-act="playerAI" ${ui.busy?'disabled':''}>✨ Crear con IA gratuita</button></div><p class="mut sm">Crear y editar a mano no gasta cuota. La IA usa el proveedor elegido en Forjar y el canon del universo. Los valores de juego son orientativos: revísalos según tu sistema.</p>${list.length?`<div class="grid">${list.map(c=>`<div class="card hov" data-act="playerOpen" data-v="${c.id}"><span class="badge v">🎲 Personaje jugador</span><h3>${esc(c.nombre)}</h3><p class="mut">${esc(c.concepto||'Sin concepto todavía')}</p><p class="sm">${esc(clip(c.aspecto,150))}</p>${c.jugador?`<span class="badge">${esc(c.jugador)}</span>`:''}</div>`).join('')}</div>`:`<div class="empty">Aún no hay fichas. Crea la primera y personaliza los campos según tu sistema.</div>`}`;
+}
+TABS.splice(4,0,['jugadores','🎭 Jugadores']);
+const baseRenderPlayers=render;
+render=function(){ if(ui.tab!=='jugadores'){baseRenderPlayers();return;}const p=cur();$('#projSel').innerHTML=DB.projects.map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${esc(x.name)}</option>`).join('');$('#tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('');$('#view').innerHTML=vPlayers(p); };
+const baseBuildDocPlayers=buildDoc;
+buildDoc=function(p,o){const d=baseBuildDocPlayers(p,o);if((p.jugadores||[]).length){d.blocks.push({t:'h1',x:'Fichas de personaje jugador'});p.jugadores.forEach(c=>{d.blocks.push({t:'h2',x:c.nombre});PLAYER_FIELDS.forEach(([k,l])=>{if(c[k])d.blocks.push({t:'p',x:l+': '+c[k]});});});}return d;};
+document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset.player)return;const c=players(cur()).find(x=>x.id===playerEdit);if(c){c[t.dataset.player]=t.value;save();}});
+document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-act]');if(!t||!t.dataset.act.startsWith('player'))return;const a=t.dataset.act,id=t.dataset.v,p=cur(),list=players(p),c=list.find(x=>x.id===id);
+  if(a==='playerNew'){const x=newPlayer();list.push(x);playerEdit=x.id;saveNow();render();}
+  if(a==='playerOpen'){playerEdit=id;render();}
+  if(a==='playerBack'){playerEdit=null;render();}
+  if(a==='playerCopy'&&c){const x={...c,id:uid(),nombre:c.nombre+' (copia)'};list.push(x);playerEdit=x.id;saveNow();render();}
+  if(a==='playerDelete'&&c&&confirm('¿Eliminar la ficha de '+c.nombre+'?')){p.jugadores=list.filter(x=>x.id!==id);playerEdit=null;saveNow();render();}
+  if(a==='playerMD'&&c)download(slug(c.nombre)+'-ficha.md',new Blob([toMarkdown(playerDoc(c),{secretos:false,guia:false,campana:true})],{type:'text/markdown;charset=utf-8'}));
+  if(a==='playerJSON'&&c)download(slug(c.nombre)+'-ficha.json',new Blob([exportJSON(playerDoc(c))],{type:'application/json'}));
+  if(a==='playerPDF'&&c){try{const doc=await buildPdf(playerDoc(c),{secretos:false,guia:false,campana:true});doc.save(slug(c.nombre)+'-ficha.pdf');}catch(e){toast(e.message,1);}}
+  if(a==='playerAI'){const idea=prompt('Concepto del personaje (opcional). Usa solo ficción, sin datos personales sensibles.');if(idea===null)return;ui.busy='player';render();try{const d=await aiJSON(sysBase(),ctxHead(p)+'\nCrea UN personaje jugador coherente con este universo. Concepto: '+idea+'\nDevuelve JSON con nombre,jugador (vacío),concepto,aspecto,rasgos,atributos (texto con campos libres, sin imponer sistema),equipo,trasfondo,notas. Máximo 80 palabras por campo, todo en español. No inventes reglas oficiales.');if(!str(d.nombre)||!str(d.aspecto))throw Error('La IA devolvió una ficha incompleta. Reintenta o créala a mano.');const x=newPlayer();x.nombre=str(d.nombre);PLAYER_FIELDS.forEach(([k])=>x[k]=str(d[k]));list.push(x);playerEdit=x.id;saveNow();}catch(e){toast(e.message,1);}finally{ui.busy=null;render();}}
+});
+
 // ---------- inicio ----------
 function init() {
   load();
