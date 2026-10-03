@@ -222,7 +222,7 @@ async function ai(system, user, temp) {
   }
   clearTimeout(tm);
   if (!d) throw new Error('Respuesta inesperada de la IA (código ' + r.status + ').');
-  if (!r.ok || d.error) { const m = d.error && (d.error.message || d.error) || ''; if (r.status === 429 || /quota|exhaust|rate/i.test(String(m))) throw new Error('Se ha agotado la cuota gratuita de la IA por ahora. Prueba más tarde.'); if (r.status === 503 || /high demand/i.test(String(m))) throw new Error('La IA gratuita está saturada ahora mismo. Espera un minuto y reintenta.'); throw new Error('Error de la IA' + (m ? ': ' + clip(String(m), 140) : ' (código ' + r.status + ')') + '.'); }
+  if (!r.ok || d.error) { const m = d.error && (d.error.message || d.error) || ''; if (r.status === 429 || /quota|exhaust|rate/i.test(String(m))) { const mm = String(m).match(/retry in (?:(\d+)h)?(?:(\d+)m)?/i); const wait = mm && (mm[1] || mm[2]) ? ' Vuelve a estar disponible en ' + (mm[1] ? mm[1] + ' h ' : '') + (mm[2] ? mm[2] + ' min' : '') + '.' : ''; throw new Error('Se ha agotado la cuota gratuita diaria de la IA (unas 20 peticiones al día).' + wait + ' Puedes seguir editando a mano.'); } if (r.status === 503 || /high demand/i.test(String(m))) throw new Error('La IA gratuita está saturada ahora mismo. Espera un minuto y reintenta.'); throw new Error('Error de la IA' + (m ? ': ' + clip(String(m), 140) : ' (código ' + r.status + ')') + '.'); }
   const out = ((d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || []).map(x => x.text || '').join('');
   if (!out) throw new Error('La IA no devolvió texto (quizá filtró el contenido). Reformula e inténtalo otra vez.');
   return out;
@@ -279,12 +279,27 @@ function applyStage(p, st, items, replace) {
   if (st.type === 'evento') p.ents.filter(e => e.type === 'evento').forEach((e, i) => { if (!e.orden) e.orden = i + 1; });
   resolveRels(p);
 }
+const GROUPS = [['mundo', 'lugar', 'cultura', 'regla'], ['faccion', 'evento', 'pnj'], ['conflicto', 'gancho', 'guia']];
+async function genGroup(p, sts, extra) {
+  const parts = sts.map(st => { const lockedN = p.ents.filter(e => e.type === st.type && e.locked).length; return { st, n: Math.max(st.type === 'mundo' || st.type === 'guia' ? st.n : 2, st.n - lockedN) }; });
+  const ids = parts.map(x => x.st.id).join(', ');
+  const user = `${ctxHead(p)}\n\nTAREA: genera varias categorías del universo en UNA sola respuesta, en este orden. Cada categoría debe usar los nombres EXACTOS de lo ya existente en el canon y de lo creado antes en esta misma respuesta, y todo debe ser coherente entre sí:\n${parts.map((x, i) => `${i + 1}) ${x.st.id}: ${x.st.ask(x.n)} (exactamente ${x.n} elemento(s))`).join('\n')}${extra ? '\nINSTRUCCIÓN ADICIONAL DEL MÁSTER: ' + extra : ''}\n\nCLAVES: ${ids}\nDevuelve UN objeto JSON con exactamente estas claves (${ids}); cada clave contiene un array de elementos con el esquema de su categoría (textos largos en texto plano, sin markdown):\n${parts.map(x => `- ${x.st.id}: ${SPEC[x.st.type].schema}`).join('\n')}`;
+  const d = await aiJSON(sysBase(), user, 0.95); const out = {};
+  for (const x of parts) { let a = d[x.st.id]; if (a && !Array.isArray(a)) a = a.items || [a]; if (!a || !a.length) throw new Error('La IA no devolvió la categoría "' + x.st.label + '". Inténtalo de nuevo.'); out[x.st.id] = a.slice(0, x.n + 2).map(o => fromAI(x.st.type, o)); }
+  return out;
+}
 async function forge(ids, replace, extra) {
   const p = cur(); ui.busy = 'forge'; busy(1); let ok = 0;
-  for (const id of ids) {
-    const st = STAGES.find(s => s.id === id); ui.stageSt[id] = 'run'; render();
-    try { const items = await genStage(p, st, extra); applyStage(p, st, items, replace); if (id === 'mundo' && /^(Mi primer universo|Universo nuevo)$/.test(p.name)) { const w = p.ents.find(e => e.type === 'mundo'); if (w && w.name !== 'Sin nombre') p.name = w.name; } ui.stageSt[id] = 'ok'; ok++; saveNow(); }
-    catch (e) { ui.stageSt[id] = 'err:' + e.message; toast(e.message, 1); break; }
+  const units = ui.eco === false || ids.length === 1 ? ids.map(i => [i]) : GROUPS.map(g => g.filter(i => ids.includes(i))).filter(g => g.length);
+  for (const u of units) {
+    u.forEach(id => ui.stageSt[id] = 'run'); render();
+    try {
+      const sts = u.map(id => STAGES.find(s => s.id === id));
+      if (sts.length === 1) { const items = await genStage(p, sts[0], extra); applyStage(p, sts[0], items, replace); }
+      else { const res = await genGroup(p, sts, extra); sts.forEach(st => applyStage(p, st, res[st.id], replace)); }
+      if (u.includes('mundo') && /^(Mi primer universo|Universo nuevo)$/.test(p.name)) { const w = p.ents.find(e => e.type === 'mundo'); if (w && w.name !== 'Sin nombre') p.name = w.name; }
+      u.forEach(id => ui.stageSt[id] = 'ok'); ok += u.length; saveNow();
+    } catch (e) { u.forEach(id => ui.stageSt[id] = 'err:' + e.message); toast(e.message, 1); break; }
   }
   ui.busy = null; busy(0); render();
   if (ok === ids.length) toast('Universo forjado: ' + ok + ' etapa' + (ok > 1 ? 's' : '') + ' completada' + (ok > 1 ? 's' : ''));
@@ -380,7 +395,7 @@ function vAjustes(p) {
   <h3 class="h3 sec">Etapas de generación</h3><div class="card">${stg}
   <label>Indicación extra para esta forja (opcional)</label><input id="extra" placeholder="Ej.: que haya un volcán importante; nombres de inspiración nórdica…">
   <div class="row" style="margin-top:12px"><button class="btn pri" data-act="forge" ${run ? 'disabled' : ''}>${run ? '<span class="spin"></span> Forjando…' : '⚒️ Forjar universo'}</button><button class="btn" data-act="example" ${run ? 'disabled' : ''}>📜 Cargar universo de ejemplo</button></div>
-  <p class="mut sm">Las etapas marcadas reemplazan sus elementos <b>no bloqueados</b> (🔒 protege lo que ya te gusta). Cada etapa tarda unos segundos. La IA es gratuita y tiene cuota diaria.</p>
+  <div class="sw"><input type="checkbox" data-eco ${ui.eco === false ? '' : 'checked'}><label style="margin:0;font-size:13.5px;color:var(--txt)">Economizar cuota de IA: genera en 3 peticiones en vez de 10 (el plan gratuito permite unas 20 al día)</label></div><p class="mut sm">Las etapas marcadas reemplazan sus elementos <b>no bloqueados</b> (🔒 protege lo que ya te gusta). Cada etapa tarda unos segundos. La IA es gratuita y tiene cuota diaria.</p>
   ${err ? `<p style="color:var(--red)">⚠️ ${esc(String(err).slice(4))} <button class="btn sm" data-act="forge">Reintentar</button></p>` : ''}</div>`;
 }
 
@@ -823,6 +838,8 @@ document.addEventListener('input', ev => { const t = ev.target; if (t.id === 'q'
 document.addEventListener('change', async ev => {
   const t = ev.target, p = cur();
   if (t.id === 'projSel') { DB.currentId = t.value; ui.stageSt = {}; ui.edit = null; $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); saveNow(); render(); return; }
+  if (t.dataset.eco !== undefined) { ui.eco = t.checked; return; }
+  if (t.dataset.eco !== undefined) { ui.eco = t.checked; return; }
   if (t.dataset.stage) { ui.sel = ui.sel || {}; ui.sel[t.dataset.stage] = t.checked; return; }
   if (t.dataset.track) { const e = ent(t.dataset.track); e.estado = t.value; saveNow(); return; }
   if (t.id === 'sesAdd' && t.value) { const s = p.sesiones.find(x => x.id === ui.edit.id); s.ents = (s.ents || []).concat(t.value); saveNow(); renderDrawer(); return; }
@@ -846,4 +863,4 @@ const _r = render; render = function () { _r(); updSliders(); };
 init();
 </script>
 </body>
-                                                            </html>
+    </html>
