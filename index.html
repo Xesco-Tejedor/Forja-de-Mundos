@@ -210,7 +210,7 @@ function fromAI(type, o) {
 
 // ---------- IA ----------
 let aiPref = localStorage.getItem('forja-ai-provider') || 'auto';
-let freeModel = localStorage.getItem('forja-ai-model') || 'openrouter/free';
+let freeModel = localStorage.getItem('forja-ai-model') || 'google/gemma-4-31b-it:free';
 let aiUsed = '';
 async function ai(system, user, temp) {
   const body = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { temperature: temp == null ? 0.9 : temp, responseMimeType: 'application/json' }, freeModel };
@@ -292,9 +292,9 @@ const GROUPS = [['mundo', 'lugar', 'cultura', 'regla'], ['faccion', 'evento', 'p
 async function genGroup(p, sts, extra) {
   const parts = sts.map(st => { const lockedN = p.ents.filter(e => e.type === st.type && e.locked).length; return { st, n: Math.max(st.type === 'mundo' || st.type === 'guia' ? st.n : 2, st.n - lockedN) }; });
   const ids = parts.map(x => x.st.id).join(', ');
-  const user = `${ctxHead(p)}\n\nTAREA: genera varias categorías del universo en UNA sola respuesta, en este orden. Cada categoría debe usar los nombres EXACTOS de lo ya existente en el canon y de lo creado antes en esta misma respuesta, y todo debe ser coherente entre sí:\n${parts.map((x, i) => `${i + 1}) ${x.st.id}: ${x.st.ask(x.n)} (exactamente ${x.n} elemento(s))`).join('\n')}${extra ? '\nINSTRUCCIÓN ADICIONAL DEL MÁSTER: ' + extra : ''}\n\nCLAVES: ${ids}\nDevuelve UN objeto JSON con exactamente estas claves (${ids}); cada clave contiene un array de elementos con el esquema de su categoría (textos largos en texto plano, sin markdown):\n${parts.map(x => `- ${x.st.id}: ${SPEC[x.st.type].schema}`).join('\n')}`;
+  const user = `${ctxHead(p)}\n\nTAREA: genera varias categorías del universo en UNA sola respuesta, en este orden. Cada categoría debe usar los nombres EXACTOS de lo ya existente en el canon y de lo creado antes en esta misma respuesta, y todo debe ser coherente entre sí:\n${parts.map((x, i) => `${i + 1}) ${x.st.id}: ${x.st.ask(x.n)} (exactamente ${x.n} elemento(s))`).join('\n')}${extra ? '\nINSTRUCCIÓN ADICIONAL DEL MÁSTER: ' + extra : ''}\n\nCLAVES: ${ids}\nDevuelve UN objeto JSON con exactamente estas claves (${ids}); cada clave contiene un array de elementos con el esquema de su categoría (textos concisos en texto plano, sin markdown; máximo 70 palabras por campo, completa todos los elementos y cierra el JSON):\n${parts.map(x => `- ${x.st.id}: ${SPEC[x.st.type].schema}`).join('\n')}`;
   const d = await aiJSON(sysBase(), user, 0.95); const out = {};
-  for (const x of parts) { let a = d[x.st.id]; if (a && !Array.isArray(a)) a = a.items || [a]; if (!a || !a.length) throw new Error('La IA no devolvió la categoría "' + x.st.label + '". Inténtalo de nuevo.'); out[x.st.id] = a.slice(0, x.n + 2).map(o => fromAI(x.st.type, o)); }
+  for (const x of parts) { let a = d[x.st.id]; if (a && !Array.isArray(a)) a = a.items || [a]; if (!a || !a.length) throw new Error('La IA no devolvió la categoría "' + x.st.label + '". Inténtalo de nuevo.'); out[x.st.id] = a.filter(o => o && typeof o === 'object' && str(o.nombre || o.titulo) && str(o.descripcion || o.contenido || o.resumen || o.lema)).slice(0, x.n).map(o => fromAI(x.st.type, o)); if (out[x.st.id].length < x.n) throw new Error('La IA devolvió una categoría incompleta (' + x.st.label + '). Reintenta esa tanda; no se guardaron elementos vacíos.'); }
   return out;
 }
 async function forge(ids, replace, extra) {
