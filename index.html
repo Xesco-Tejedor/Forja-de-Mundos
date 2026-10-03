@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forja de Mundos · Creador de universos para másters de rol</title>
+<meta name="description" content="Crea, ajusta y exporta universos de rol coherentes con su guía del máster y gestor de campaña. Independiente de sistema.">
+<meta name="theme-color" content="#0b1020">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%8B%3C/text%3E%3C/svg%3E">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap');
+:root{--bg:#0b1020;--bg2:#121a33;--card:#0f1730;--line:#233056;--txt:#e8ecf8;--mut:#93a0c4;--teal:#2dd4bf;--teal2:#14b8a6;--amber:#fbbf24;--red:#f87171;--green:#4ade80;--violet:#a78bfa;--r:16px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.55 Inter,system-ui,sans-serif;min-height:100vh;overflow-x:hidden;-webkit-text-size-adjust:100%}
+body:before{content:"";position:fixed;inset:0;z-index:-2;background:radial-gradient(900px 500px at 12% -10%,rgba(45,212,191,.16),transparent 60%),radial-gradient(800px 600px at 100% 10%,rgba(167,139,250,.14),transparent 60%),radial-gradient(900px 700px at 50% 120%,rgba(251,191,36,.10),transparent 60%);animation:drift 24s ease-in-out infinite alternate}
+@keyframes drift{to{filter:hue-rotate(25deg);transform:scale(1.06)}}
+.runes{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.runes i{position:absolute;bottom:-40px;font-style:normal;color:var(--teal);opacity:.0;font-size:22px;animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.22}90%{opacity:.18}100%{transform:translateY(-110vh) rotate(60deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){body:before,.runes i,.card,.btn{animation:none!important;transition:none!important}}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;line-height:1.15;margin:0}
+.top{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;padding:10px 16px;background:rgba(11,16,32,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.logo{font:800 22px Fraunces,Georgia,serif;display:flex;align-items:center;gap:8px;margin-right:auto;white-space:nowrap}
+.logo b{color:var(--teal)}
+.logo small{font:500 11px Inter;color:var(--mut);display:block;margin-top:-2px}
+.tabs{display:flex;gap:4px;padding:8px 16px;overflow-x:auto;border-bottom:1px solid var(--line);background:rgba(15,23,48,.6)}
+.tab{background:none;border:0;color:var(--mut);font:600 14px Inter;padding:9px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:.2s}
+.tab:hover{color:var(--txt)}
+.tab.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#04201c;box-shadow:0 0 18px rgba(45,212,191,.35)}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 90px}
+.card{background:linear-gradient(180deg,rgba(18,26,51,.92),rgba(15,23,48,.92));border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s,border-color .2s}
+.card.hov{cursor:pointer}
+.card.hov:hover{transform:translateY(-3px);border-color:var(--teal);box-shadow:0 14px 34px rgba(0,0,0,.4),0 0 22px rgba(45,212,191,.22)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{justify-content:space-between}
+.btn{border:1px solid var(--line);background:var(--bg2);color:var(--txt);font:600 14px Inter;padding:9px 14px;border-radius:12px;cursor:pointer;transition:.15s;display:inline-flex;gap:6px;align-items:center}
+.btn:hover{border-color:var(--teal);transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.pri{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#04201c;border:0;box-shadow:0 0 18px rgba(45,212,191,.3)}
+.btn.amb{background:linear-gradient(135deg,var(--amber),#f59e0b);color:#2a1a00;border:0}
+.btn.dan{color:var(--red)}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:9px}
+input,select,textarea{width:100%;background:#0a1128;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:15px Inter,sans-serif;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(45,212,191,.15)}
+textarea{resize:vertical;min-height:70px;line-height:1.5}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin:12px 0 5px;letter-spacing:.02em}
+input[type=range]{padding:0;accent-color:var(--teal);height:28px}
+.mut{color:var(--mut)}.sm{font-size:13px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(45,212,191,.12);color:var(--teal);border:1px solid rgba(45,212,191,.3)}
+.badge.a{background:rgba(251,191,36,.12);color:var(--amber);border-color:rgba(251,191,36,.3)}
+.badge.r{background:rgba(248,113,113,.12);color:var(--red);border-color:rgba(248,113,113,.3)}
+.badge.v{background:rgba(167,139,250,.12);color:var(--violet);border-color:rgba(167,139,250,.3)}
+.badge.g{background:rgba(74,222,128,.12);color:var(--green);border-color:rgba(74,222,128,.3)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--bg2);color:var(--mut);font:600 13px Inter;padding:6px 12px;border-radius:999px;cursor:pointer;transition:.15s}
+.chip:hover{color:var(--txt)}
+.chip.on{background:rgba(45,212,191,.16);color:var(--teal);border-color:var(--teal)}
+.h2{font-size:24px;margin:6px 0 4px}.h3{font-size:18px}
+.sec{margin:22px 0 10px}
+.two{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+@media(max-width:760px){.two{grid-template-columns:1fr}.tabs{position:fixed;bottom:0;left:0;right:0;z-index:40;border-top:1px solid var(--line);border-bottom:0;background:rgba(11,16,32,.96);backdrop-filter:blur(10px);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}.tab{padding:8px 11px;font-size:13px}.logo small{display:none}}
+.slider{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}
+.val{color:var(--amber);font-weight:700;font-size:13px}
+.stage{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:#0a1128;margin-bottom:8px}
+.stage .st{margin-left:auto;font-size:13px;color:var(--mut)}
+.stage.run{border-color:var(--teal);box-shadow:0 0 14px rgba(45,212,191,.3)}
+.stage.err{border-color:var(--red)}
+.stage input{width:auto}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.bar{position:fixed;left:0;top:0;height:3px;width:100%;z-index:60;background:linear-gradient(90deg,transparent,var(--teal),var(--amber),transparent);background-size:200% 100%;animation:bar 1.2s linear infinite;display:none}
+.bar.on{display:block}
+@keyframes bar{to{background-position:-200% 0}}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:#0c1430;border-left:1px solid var(--line);z-index:50;transform:translateX(105%);transition:transform .25s;overflow-y:auto;padding:16px 16px 40px;box-shadow:-20px 0 50px rgba(0,0,0,.5)}
+.drawer.on{transform:none}
+.scrim{position:fixed;inset:0;background:rgba(3,6,16,.6);z-index:45;display:none}
+.scrim.on{display:block}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:#16224a;border:1px solid var(--teal);color:var(--txt);padding:10px 16px;border-radius:12px;z-index:80;opacity:0;transition:.25s;max-width:92vw;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast.err{border-color:var(--red)}
+.rel{display:flex;gap:6px;align-items:center;margin:4px 0;font-size:13.5px}
+.rel .x{margin-left:auto}
+.link{color:var(--teal);cursor:pointer;text-decoration:underline dotted}
+.empty{text-align:center;padding:36px 16px;color:var(--mut)}
+.empty .big{font-size:42px}
+.tl{position:relative;margin-left:14px;padding-left:22px;border-left:2px solid var(--line)}
+.tl .ev{position:relative;margin-bottom:14px}
+.tl .ev:before{content:"";position:absolute;left:-30px;top:16px;width:12px;height:12px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal)}
+.kan{display:grid;gap:12px;grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.kan{grid-template-columns:1fr 1fr}}@media(max-width:560px){.kan{grid-template-columns:1fr}}
+.kcol{background:#0a1128;border:1px solid var(--line);border-radius:14px;padding:10px;min-height:120px}
+.kcol h4{margin:0 0 8px;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;cursor:pointer}
+.q:hover{border-color:var(--teal)}
+.iss{border-left:4px solid var(--amber)}.iss.alta{border-left-color:var(--red)}.iss.baja{border-left-color:var(--violet)}
+.sub{display:flex;gap:6px;margin:6px 0 14px}
+pre.b{white-space:pre-wrap;font:inherit;margin:8px 0 0}
+.lock{filter:drop-shadow(0 0 4px rgba(251,191,36,.6))}
+.sw{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:14px}.sw input{width:auto}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:30px 16px 100px}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<div class="runes" id="runes" aria-hidden="true"></div>
+<header class="top">
+  <div class="logo"><span style="font-size:26px">🌋</span><div>Forja de <b>Mundos</b><small>Universos de rol para el máster</small></div></div>
+  <select id="projSel" style="width:auto;max-width:210px" aria-label="Universo"></select>
+  <button class="btn sm" data-act="newProject">＋ Nuevo</button>
+</header>
+<nav class="tabs" id="tabs"></nav>
+<main id="view"></main>
+<footer>Forja de Mundos · tus datos se guardan solo en este navegador · exporta una copia JSON de vez en cuando</footer>
+<div class="scrim" id="scrim" data-act="closeDrawer"></div>
+<aside class="drawer" id="drawer" aria-label="Editor"></aside>
+<div class="toast" id="toast"></div>
+<script>
+'use strict';
+const PROXY = "https://gemini-proxy.francesc-adria-perello.workers.dev/";
+const LS = 'forja.v1';
+const $ = (s, r = document) => r.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim();
+const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+const str = v => Array.isArray(v) ? v.map(str).filter(Boolean).join(', ') : (v && typeof v === 'object') ? Object.values(v).map(str).filter(Boolean).join(' · ') : String(v == null ? '' : v).trim();
+
+const TYPES = {
+  mundo: { label: 'Mundo', plural: 'El mundo', icon: '🌍' },
+  lugar: { label: 'Lugar', plural: 'Lugares', icon: '🗺️' },
+  evento: { label: 'Evento histórico', plural: 'Historia y cronología', icon: '⏳' },
+  faccion: { label: 'Facción', plural: 'Facciones', icon: '⚔️' },
+  pnj: { label: 'PNJ', plural: 'Personajes (PNJ)', icon: '🎭' },
+  cultura: { label: 'Cultura o religión', plural: 'Culturas y religiones', icon: '🏛️' },
+  regla: { label: 'Regla de magia o tecnología', plural: 'Magia, tecnología y reglas', icon: '✨' },
+  conflicto: { label: 'Conflicto', plural: 'Conflictos', icon: '🔥' },
+  gancho: { label: 'Gancho de aventura', plural: 'Ganchos de aventura', icon: '🪝' },
+  guia: { label: 'Sección de la guía', plural: 'Guía del máster', icon: '📖' }
+};
+const ORDER = ['mundo', 'lugar', 'cultura', 'regla', 'faccion', 'evento', 'pnj', 'conflicto', 'gancho', 'guia'];
+const WORLD_TYPES = ORDER.filter(t => t !== 'guia' && t !== 'mundo');
+
+// Esquemas JSON que se piden a la IA y cómo se convierten en elementos
+const SPEC = {
+  mundo: { schema: '{"nombre":"nombre del mundo/universo","lema":"frase corta que lo resume","descripcion":"4-6 frases: qué es este mundo, su atmósfera y su situación actual","principios":"3-4 rasgos que definen el mundo, separados por punto y coma","secreto":"el gran secreto del mundo, solo para el máster"}', body: [['descripcion', ''], ['principios', 'Principios del mundo']], tag: null, rel: [], list: null },
+  lugar: { schema: '{"nombre":"","tipo":"ciudad|región|ruina|bosque|puerto|templo|...","resumen":"1-2 frases","descripcion":"3-5 frases: aspecto, ambiente, gente, qué se puede hacer allí","secreto":"verdad oculta solo para el máster","dentro_de":"nombre EXACTO de otro lugar existente o vacío","conexiones":[{"con":"nombre exacto de lugar/facción/PNJ existente","tipo":"limita con|comercia con|..."}]}', body: [['descripcion', '']], tag: 'tipo', rel: [['dentro_de', 'dentro de']], list: 'conexiones' },
+  evento: { schema: '{"nombre":"","fecha_texto":"fecha en el calendario del mundo, p. ej. Año 312 de la Era del Sol","orden":0,"resumen":"1-2 frases","descripcion":"3-4 frases","consecuencias":"cómo marca el presente","secreto":"verdad oculta solo para el máster","participantes":["nombres exactos de facciones/PNJ/lugares existentes"]}', body: [['descripcion', ''], ['consecuencias', 'Consecuencias']], tag: null, rel: [['participantes', 'implica a']], list: null },
+  faccion: { schema: '{"nombre":"","tipo":"gremio|reino|culto|ejército|familia|...","resumen":"1-2 frases","descripcion":"3-4 frases","objetivos":"","metodos":"","secreto":"agenda oculta solo para el máster","sede":"nombre exacto de un lugar existente","aliados":["nombres exactos de facciones existentes"],"rivales":["nombres exactos de facciones existentes"]}', body: [['descripcion', ''], ['objetivos', 'Objetivos'], ['metodos', 'Métodos']], tag: 'tipo', rel: [['sede', 'con sede en'], ['aliados', 'aliada de'], ['rivales', 'rival de']], list: null },
+  pnj: { schema: '{"nombre":"","rol":"oficio o papel en el mundo","resumen":"1-2 frases","descripcion":"aspecto y manera de hablar","personalidad":"","motivacion":"","secreto":"verdad oculta solo para el máster","faccion":"nombre exacto de una facción existente o vacío","lugar":"nombre exacto de un lugar existente","relaciones":[{"con":"nombre exacto de otro PNJ/facción existente","tipo":"hermano de|deudor de|..."}]}', body: [['descripcion', ''], ['personalidad', 'Personalidad'], ['motivacion', 'Motivación']], tag: 'rol', rel: [['faccion', 'miembro de'], ['lugar', 'se encuentra en']], list: 'relaciones' },
+  cultura: { schema: '{"nombre":"","tipo":"cultura|religión|tradición","resumen":"1-2 frases","descripcion":"3-4 frases","costumbres":"","creencias":"","secreto":"solo para el máster","donde":"nombre exacto de un lugar existente"}', body: [['descripcion', ''], ['costumbres', 'Costumbres'], ['creencias', 'Creencias']], tag: 'tipo', rel: [['donde', 'presente en']], list: null },
+  regla: { schema: '{"nombre":"","categoria":"magia|tecnología|ley natural|economía","resumen":"1-2 frases","descripcion":"cómo funciona, 3-4 frases","limites":"qué NO puede hacerse","coste":"precio o riesgo de usarla","secreto":"solo para el máster"}', body: [['descripcion', ''], ['limites', 'Límites'], ['coste', 'Coste y riesgos']], tag: 'categoria', rel: [], list: null },
+  conflicto: { schema: '{"nombre":"","resumen":"1-2 frases","descripcion":"3-4 frases","escalada":"cómo empeora si los jugadores no intervienen","secreto":"solo para el máster","bandos":["nombres exactos de facciones/PNJ existentes"]}', body: [['descripcion', ''], ['escalada', 'Si nadie interviene']], tag: null, rel: [['bandos', 'enfrenta a']], list: null },
+  gancho: { schema: '{"nombre":"título sugerente","resumen":"1-2 frases","descripcion":"cómo empieza la aventura","complicacion":"giro o dificultad","recompensa":"","secreto":"verdad oculta solo para el máster","pnj_clave":"nombre exacto de un PNJ existente","lugar":"nombre exacto de un lugar existente","conflicto":"nombre exacto de un conflicto existente o vacío"}', body: [['descripcion', ''], ['complicacion', 'Complicación'], ['recompensa', 'Recompensa']], tag: null, rel: [['pnj_clave', 'implica a'], ['lugar', 'ocurre en'], ['conflicto', 'parte del conflicto']], list: null },
+  guia: { schema: '{"titulo":"","contenido":"texto útil y práctico para el máster"}', body: [['contenido', '']], tag: null, rel: [], list: null }
+};
+
+const STAGES = [
+  { id: 'mundo', type: 'mundo', n: 1, label: 'Visión general del mundo', ask: n => 'Crea la visión general del universo (1 elemento) a partir de la premisa y los ajustes.' },
+  { id: 'lugar', type: 'lugar', n: 7, label: 'Geografía y lugares', ask: n => `Crea ${n} lugares variados (de escala acorde al ajuste) que formen una geografía coherente: algunos lugares dentro de otros, conexiones entre ellos y al menos un sitio peligroso o misterioso.` },
+  { id: 'cultura', type: 'cultura', n: 3, label: 'Culturas y religiones', ask: n => `Crea ${n} culturas, pueblos o religiones, ligadas a lugares ya existentes.` },
+  { id: 'regla', type: 'regla', n: 3, label: 'Magia, tecnología y reglas del mundo', ask: n => `Crea ${n} reglas fundamentales del mundo (magia, tecnología, ley natural o economía) con límites y costes claros, respetando los niveles de magia y tecnología.` },
+  { id: 'faccion', type: 'faccion', n: 5, label: 'Facciones', ask: n => `Crea ${n} facciones con objetivos enfrentados, sedes en lugares existentes y alianzas o rivalidades entre ellas.` },
+  { id: 'evento', type: 'evento', n: 7, label: 'Historia y cronología', ask: n => `Crea ${n} eventos históricos ordenados cronológicamente (campo "orden": número creciente, 1 el más antiguo) que expliquen cómo se llegó al presente. Usa un calendario propio del mundo y respétalo en todas las fechas.` },
+  { id: 'pnj', type: 'pnj', n: 8, label: 'Personajes clave (PNJ)', ask: n => `Crea ${n} PNJ memorables y variados (aliados, villanos, ambiguos), vinculados a facciones y lugares existentes y entre sí.` },
+  { id: 'conflicto', type: 'conflicto', n: 4, label: 'Conflictos', ask: n => `Crea ${n} conflictos activos entre facciones o fuerzas del mundo, que den motor a campañas.` },
+  { id: 'gancho', type: 'gancho', n: 6, label: 'Ganchos de aventura', ask: n => `Crea ${n} ganchos de aventura listos para jugar, conectados a PNJ, lugares y conflictos existentes.` },
+  { id: 'guia', type: 'guia', n: 7, label: 'Guía del máster', ask: n => 'Escribe la guía del máster de este universo en exactamente estas 7 secciones (campo "titulo"): "Cómo usar este universo", "Tono y estilo de narración", "Los secretos centrales y cómo desvelarlos", "Primera sesión sugerida", "Encuentros y tabla de rumores (d6)", "Nombres, vocabulario y detalles de ambiente", "Consejos para mantener la coherencia". Cada contenido debe usar nombres reales del canon y ser práctico (3-8 frases).' }
+];
+
+// ---------- estado ----------
+let DB = { projects: [], currentId: null };
+const ui = { tab: 'ajustes', sub: 'sesiones', filter: 'all', q: '', mode: 'cards', edit: null, busy: null, stageSt: {}, prev: {}, issuesBusy: false, qfilter: 'all' };
+let saveT = null;
+function load() { try { const d = JSON.parse(localStorage.getItem(LS)); if (d && Array.isArray(d.projects)) DB = d; } catch (e) { } if (!DB.projects.length) { DB.projects.push(newProject('Mi primer universo')); DB.currentId = DB.projects[0].id; } if (!cur()) DB.currentId = DB.projects[0].id; }
+function save() { clearTimeout(saveT); saveT = setTimeout(saveNow, 250); }
+function saveNow() { try { cur().updated = Date.now(); localStorage.setItem(LS, JSON.stringify(DB)); } catch (e) { toast('No se pudo guardar: el navegador no tiene espacio. Exporta un JSON.', 1); } }
+const cur = () => DB.projects.find(p => p.id === DB.currentId);
+function newProject(name) { return { id: uid(), name: name || 'Universo nuevo', created: Date.now(), updated: Date.now(), premise: '', ajustes: { tono: 50, magia: 50, tecnologia: 30, crudeza: 40, escala: 'región', temas: [], sistema: '', jugadores: '4', vetos: '' }, ents: [], sesiones: [], misiones: [], issues: [], ignored: [] }; }
+const ent = id => cur().ents.find(e => e.id === id);
+function addEnt(p, type, f) { const e = Object.assign({ id: uid(), type, name: 'Sin nombre', summary: '', body: '', secreto: '', tags: [], fecha: '', orden: 0, rels: [], locked: false, estado: '', notasCamp: '' }, f); p.ents.push(e); return e; }
+function toast(m, err) { const t = $('#toast'); t.textContent = m; t.className = 'toast on' + (err ? ' err' : ''); clearTimeout(toast.t); toast.t = setTimeout(() => t.className = 'toast', err ? 5200 : 2600); }
+function busy(on) { $('#bar').classList.toggle('on', !!on); }
+
+// ---------- relaciones ----------
+function findByName(p, name, selfId) {
+  const n = norm(name); if (!n) return null;
+  let c = p.ents.find(e => e.id !== selfId && norm(e.name) === n); if (c) return c;
+  c = p.ents.find(e => e.id !== selfId && n.length > 3 && (norm(e.name).includes(n) || (norm(e.name).length > 3 && n.includes(norm(e.name)))));
+  return c || null;
+}
+function resolveRels(p) { for (const e of p.ents) for (const r of e.rels) { if (!r.to || !p.ents.some(x => x.id === r.to)) { r.to = null; const t = findByName(p, r.name, e.id); if (t) { r.to = t.id; r.name = t.name; } } } }
+function relName(p, r) { const t = r.to && p.ents.find(x => x.id === r.to); return t ? t.name : r.name; }
+function relText(p, e) { return e.rels.map(r => (r.label ? r.label + ' ' : '') + relName(p, r)).join('; '); }
+function addRel(e, name, label) { name = str(name); if (!name) return; if (e.rels.some(r => norm(r.name) === norm(name) && r.label === label)) return; e.rels.push({ to: null, name, label: label || 'relacionado con' }); }
+
+function fromAI(type, o) {
+  const sp = SPEC[type]; o = o || {};
+  const e = { name: str(o.nombre || o.titulo) || 'Sin nombre', summary: str(o.resumen || o.lema), secreto: str(o.secreto), tags: [], rels: [] };
+  e.body = sp.body.map(([k, l]) => { const v = str(o[k]); return v ? (l ? l + ': ' : '') + v : ''; }).filter(Boolean).join('\n\n');
+  if (type === 'mundo' && !e.summary) e.summary = clip(str(o.descripcion), 200);
+  if (type === 'guia') e.summary = clip(e.body, 140);
+  if (sp.tag && o[sp.tag]) e.tags = [str(o[sp.tag])];
+  if (type === 'evento') { e.fecha = str(o.fecha_texto || o.fecha); e.orden = Number(o.orden) || 0; }
+  for (const [k, label] of sp.rel) [].concat(o[k] || []).forEach(v => addRel(e, v, label));
+  if (sp.list && Array.isArray(o[sp.list])) o[sp.list].forEach(x => addRel(e, x && (x.con || x.nombre), x && x.tipo));
+  return e;
+}
+
+// ---------- IA ----------
+async function ai(system, user, temp) {
+  const body = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { temperature: temp == null ? 0.9 : temp, responseMimeType: 'application/json' } };
+  const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), 100000);
+  let r;
+  try { r = await fetch(PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctrl.signal }); }
+  catch (e) { throw new Error(e.name === 'AbortError' ? 'La IA ha tardado demasiado. Inténtalo de nuevo.' : 'No se pudo contactar con la IA (¿sin conexión?). Puedes seguir editando a mano.'); }
+  finally { clearTimeout(tm); }
+  const txt = await r.text(); let d; try { d = JSON.parse(txt); } catch (e) { throw new Error('Respuesta inesperada de la IA (código ' + r.status + ').'); }
+  if (!r.ok || d.error) { const m = d.error && (d.error.message || d.error) || ''; if (r.status === 429 || /quota|exhaust|rate/i.test(String(m))) throw new Error('Se ha agotado la cuota gratuita de la IA por ahora. Prueba más tarde.'); throw new Error('Error de la IA' + (m ? ': ' + clip(String(m), 140) : ' (código ' + r.status + ')') + '.'); }
+  const out = ((d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || []).map(x => x.text || '').join('');
+  if (!out) throw new Error('La IA no devolvió texto (quizá filtró el contenido). Reformula e inténtalo otra vez.');
+  return out;
+}
+function parseJSON(t) { t = t.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim(); try { return JSON.parse(t); } catch (e) { const m = t.match(/[\[{][\s\S]*[\]}]/); if (m) return JSON.parse(m[0]); throw e; } }
+async function aiJSON(sys, user, temp) { let last; for (let i = 0; i < 2; i++) { try { return parseJSON(await ai(sys, user, temp)); } catch (e) { last = e; if (!(e instanceof SyntaxError)) throw e; } } throw new Error('La IA devolvió un formato no válido. Inténtalo de nuevo.'); }
+
+const band = (v, labels) => labels[Math.min(labels.length - 1, Math.floor(v / (100 / labels.length)))];
+const L_TONO = ['muy sombrío y desesperanzado', 'oscuro y melancólico', 'equilibrado entre luces y sombras', 'aventurero y esperanzador', 'luminoso, heroico y épico'];
+const L_MAGIA = ['sin magia (todo es mundano)', 'magia rarísima y dudosa', 'magia escasa y misteriosa', 'magia presente pero con reglas', 'magia omnipresente y espectacular'];
+const L_TEC = ['edad de piedra o bronce', 'medieval', 'renacentista y de pólvora', 'industrial o de principios de la ciencia', 'futurista o espacial'];
+const L_CRU = ['apto para todos los públicos', 'suave', 'moderadamente duro', 'crudo', 'muy crudo y adulto'];
+function settingsText(p) {
+  const a = p.ajustes;
+  return `PREMISA DEL MÁSTER: ${p.premise || '(libre: inventa algo original)'}\nAJUSTES: tono ${band(a.tono, L_TONO)}; magia: ${band(a.magia, L_MAGIA)}; tecnología: ${band(a.tecnologia, L_TEC)}; crudeza: ${band(a.crudeza, L_CRU)}; escala: ${a.escala}; temas: ${a.temas.join(', ') || 'a elección'}; mesa de ${a.jugadores} jugadores${a.sistema ? '; sistema de juego habitual: ' + a.sistema + ' (sin usar estadísticas)' : ''}.${a.vetos ? '\nVETOS Y GUSTOS DE LA MESA (respétalos): ' + a.vetos : ''}`;
+}
+function sysBase() { return 'Eres un diseñador de mundos de rol de mesa y un máster veterano. Escribes en español de España, con prosa concreta y evocadora, sin relleno ni florituras vacías. Reglas: 1) Respeta estrictamente el CANON ya definido; no lo contradigas. 2) Los elementos marcados [BLOQUEADO] son intocables. 3) Cuando algo se relacione con un elemento existente, usa su nombre EXACTAMENTE igual; no crees duplicados ni cambies nombres. 4) Mantén coherentes geografía, calendario, nombres, reglas de magia/tecnología y relaciones entre elementos. 5) Sé independiente de sistema: no uses estadísticas ni reglas de un juego concreto. 6) Devuelve SOLO JSON válido, sin texto adicional.'; }
+function digest(p, o) {
+  o = o || {}; const rows = [];
+  for (const t of ORDER) {
+    const L = p.ents.filter(e => e.type === t && e.id !== o.exclude); if (!L.length) continue;
+    rows.push('## ' + TYPES[t].plural.toUpperCase());
+    for (const e of L) {
+      let s = '- ' + e.name + (e.locked ? ' [BLOQUEADO]' : '') + (e.fecha ? ' (' + e.fecha + ')' : '') + ': ' + clip(e.summary, o.full ? 400 : 170);
+      if (o.full) { s += ' | ' + clip(e.body, 700); if (e.secreto) s += ' | SECRETO: ' + clip(e.secreto, 300); }
+      const r = relText(p, e); if (r) s += ' | Relaciones: ' + clip(r, 300);
+      rows.push(s);
+    }
+  }
+  return rows.join('\n') || '(aún vacío)';
+}
+const ctxHead = (p, o) => settingsText(p) + '\n\nCANON ACTUAL DEL UNIVERSO:\n' + digest(p, o);
+
+function removeEnts(p, list) {
+  const ids = new Set(list.map(e => e.id));
+  for (const e of p.ents) for (const r of e.rels) if (r.to && ids.has(r.to)) { const t = p.ents.find(x => x.id === r.to); r.name = t.name; r.to = null; }
+  p.ents = p.ents.filter(e => !ids.has(e.id));
+  p.misiones.forEach(m => { if (ids.has(m.dador)) m.dador = ''; if (ids.has(m.lugar)) m.lugar = ''; });
+  p.sesiones.forEach(s => s.ents = (s.ents || []).filter(i => !ids.has(i)));
+}
+async function genStage(p, st, extra) {
+  const lockedN = p.ents.filter(e => e.type === st.type && e.locked).length;
+  const n = Math.max(st.type === 'mundo' || st.type === 'guia' ? st.n : 2, st.n - lockedN);
+  const user = `${ctxHead(p)}\n\nTAREA: ${st.ask(n)}${extra ? '\nINSTRUCCIÓN ADICIONAL DEL MÁSTER: ' + extra : ''}\n\nDevuelve un objeto JSON {"items":[ ... ]} con exactamente ${n} elemento(s). Cada elemento sigue este esquema (los textos largos van en texto plano, sin markdown):\n${SPEC[st.type].schema}`;
+  const d = await aiJSON(sysBase(), user, 0.95);
+  const items = Array.isArray(d) ? d : (d.items || d.elementos || Object.values(d).find(Array.isArray) || []);
+  if (!items.length) throw new Error('La IA no devolvió elementos. Inténtalo de nuevo.');
+  return items.slice(0, n + 2).map(o => fromAI(st.type, o));
+}
+function applyStage(p, st, items, replace) {
+  if (replace) removeEnts(p, p.ents.filter(e => e.type === st.type && !e.locked));
+  const names = new Set(p.ents.map(e => norm(e.name)));
+  items.forEach((it, i) => { if (names.has(norm(it.name)) && st.type !== 'guia') it.name += ' (2)'; addEnt(p, st.type, it); names.add(norm(it.name)); });
+  if (st.type === 'evento') p.ents.filter(e => e.type === 'evento').forEach((e, i) => { if (!e.orden) e.orden = i + 1; });
+  resolveRels(p);
+}
+async function forge(ids, replace, extra) {
+  const p = cur(); ui.busy = 'forge'; busy(1); let ok = 0;
+  for (const id of ids) {
+    const st = STAGES.find(s => s.id === id); ui.stageSt[id] = 'run'; render();
+    try { const items = await genStage(p, st, extra); applyStage(p, st, items, replace); if (id === 'mundo' && /^(Mi primer universo|Universo nuevo)$/.test(p.name)) { const w = p.ents.find(e => e.type === 'mundo'); if (w && w.name !== 'Sin nombre') p.name = w.name; } ui.stageSt[id] = 'ok'; ok++; saveNow(); }
+    catch (e) { ui.stageSt[id] = 'err:' + e.message; toast(e.message, 1); break; }
+  }
+  ui.busy = null; busy(0); render();
+  if (ok === ids.length) toast('Universo forjado: ' + ok + ' etapa' + (ok > 1 ? 's' : '') + ' completada' + (ok > 1 ? 's' : ''));
+}
+async function regenEnt(id, instr) {
+  const p = cur(), e = ent(id); if (!e || e.locked) return;
+  ui.prev[id] = JSON.parse(JSON.stringify(e)); ui.busy = 'ent'; busy(1); renderDrawer();
+  try {
+    const cur0 = JSON.stringify({ nombre: e.name, resumen: e.summary, descripcion: e.body, secreto: e.secreto, fecha_texto: e.fecha, relaciones: relText(p, e) });
+    const task = instr ? `Reescribe este elemento aplicando esta instrucción del máster: "${instr}". Conserva lo que la instrucción no afecte y no contradigas el canon.` : 'Propón una versión nueva y distinta de este elemento, coherente con el canon y con sus relaciones.';
+    const user = `${ctxHead(p, { exclude: e.id })}\n\nELEMENTO ACTUAL (${TYPES[e.type].label}):\n${cur0}\n\nTAREA: ${task} Mantén el nombre salvo que la instrucción lo cambie. Devuelve SOLO un objeto JSON con este esquema:\n${SPEC[e.type].schema}`;
+    let d = await aiJSON(sysBase(), user, 0.9); if (Array.isArray(d)) d = d[0] || {};
+    if (d.items && d.items[0]) d = d.items[0];
+    const n = fromAI(e.type, d);
+    Object.assign(e, { name: n.name, summary: n.summary || e.summary, body: n.body || e.body, secreto: n.secreto || e.secreto, tags: n.tags.length ? n.tags : e.tags });
+    if (e.type === 'evento') { e.fecha = n.fecha || e.fecha; e.orden = n.orden || e.orden; }
+    if (n.rels.length) e.rels = n.rels;
+    resolveRels(p); saveNow(); toast('Elemento actualizado');
+  } catch (er) { delete ui.prev[id]; toast(er.message, 1); }
+  ui.busy = null; busy(0); render(); renderDrawer();
+}
+async function addMore(type, n, extra) {
+  const p = cur(); const st = Object.assign({}, STAGES.find(s => s.type === type));
+  st.ask = m => `Añade ${m} elementos NUEVOS y distintos de los ya existentes a esta categoría, coherentes con el canon.`;
+  ui.busy = 'more'; busy(1); render();
+  try { const lockedN = 0; const user = `${ctxHead(p)}\n\nTAREA: ${st.ask(n)}${extra ? ' Instrucción: ' + extra : ''}\n\nDevuelve {"items":[...]} con exactamente ${n} elemento(s) con este esquema:\n${SPEC[type].schema}`; const d = await aiJSON(sysBase(), user, 0.95); const items = (d.items || (Array.isArray(d) ? d : [])).map(o => fromAI(type, o)); if (!items.length) throw new Error('La IA no devolvió elementos.'); applyStage(p, st, items, false); saveNow(); toast(items.length + ' elementos añadidos'); }
+  catch (e) { toast(e.message, 1); }
+  ui.busy = null; busy(0); render();
+}
+
+// ---------- coherencia ----------
+function localIssues(p) {
+  const L = []; const add = (g, t, x, names, key) => L.push({ key, grav: g, titulo: t, texto: x, elementos: names || [], src: 'auto' });
+  const seen = {};
+  for (const e of p.ents) { const k = e.type + '|' + norm(e.name); if (e.type !== 'guia' && seen[k]) add('alta', 'Nombre duplicado: ' + e.name, 'Hay dos elementos del mismo tipo con el mismo nombre. Fusiona o renombra uno.', [e.name], 'dup|' + k); seen[k] = 1; }
+  for (const e of p.ents) {
+    for (const r of e.rels) if (!r.to) add('media', `"${e.name}" menciona a "${r.name}" pero no existe`, `La relación "${r.label} ${r.name}" apunta a algo que no está en el universo. Créalo o corrige la relación.`, [e.name], 'rel|' + e.id + '|' + norm(r.name));
+    if (e.type === 'pnj' && !e.rels.some(r => r.to && ['faccion', 'lugar'].includes((ent(r.to) || {}).type))) add('baja', `${e.name} no está ligado a ningún lugar ni facción`, 'Un PNJ aislado es difícil de usar en mesa.', [e.name], 'iso|' + e.id);
+    if (e.type === 'lugar' && !e.rels.length && !p.ents.some(o => o.rels.some(r => r.to === e.id))) add('baja', `${e.name} no tiene conexiones`, 'Nadie lo menciona ni lo conecta con otros lugares.', [e.name], 'orph|' + e.id);
+    if (e.type === 'evento' && !e.fecha) add('baja', `El evento "${e.name}" no tiene fecha`, 'Sin fecha no se puede ordenar la cronología.', [e.name], 'nodate|' + e.id);
+    if (!e.summary && e.type !== 'guia') add('baja', `"${e.name}" no tiene resumen`, 'Los resúmenes alimentan el contexto de la IA y la comprobación de coherencia.', [e.name], 'nosum|' + e.id);
+  }
+  const ev = p.ents.filter(e => e.type === 'evento'); const o = {}; ev.forEach(e => { if (e.orden) (o[e.orden] = o[e.orden] || []).push(e); });
+  Object.values(o).forEach(a => { if (a.length > 1 && new Set(a.map(x => x.fecha)).size > 1) add('media', 'Eventos con el mismo orden pero fechas distintas', a.map(x => x.name + ' (' + x.fecha + ')').join(' / '), a.map(x => x.name), 'ord|' + a.map(x => x.id).join()); });
+  if (!p.ents.some(e => e.type === 'mundo')) add('media', 'Falta la visión general del mundo', 'Genera o escribe el elemento "Mundo": da el tono a todo lo demás.', [], 'nomundo');
+  p.misiones.forEach(m => { const d = ent(m.dador); if (d && /muert|desaparec/i.test(d.estado) && m.estado !== 'resuelta') add('media', `La misión "${m.titulo}" la da ${d.name}, que figura como ${d.estado}`, 'Revisa quién entrega la misión ahora.', [d.name], 'qdead|' + m.id); });
+  return L.filter(i => !p.ignored.includes(i.key));
+}
+async function aiCheck() {
+  const p = cur(); if (p.ents.length < 3) { toast('Crea primero algo de universo para revisar.', 1); return; }
+  ui.issuesBusy = true; busy(1); render();
+  try {
+    const user = `${settingsText(p)}\n\nUNIVERSO COMPLETO A REVISAR:\n${digest(p, { full: true })}\n\nTAREA: Actúa como editor de continuidad. Busca contradicciones REALES entre elementos (fechas imposibles, geografía incompatible, reglas de magia o tecnología violadas, personajes con datos opuestos, facciones aliadas y rivales a la vez, secretos que contradicen lo público, tono incoherente con los ajustes) y huecos importantes. No inventes problemas: si todo es coherente devuelve una lista vacía. Máximo 10, ordenados por gravedad.\nDevuelve {"problemas":[{"gravedad":"alta|media|baja","titulo":"","explicacion":"qué choca y por qué","elementos":["nombres exactos implicados"],"sugerencia":"cómo arreglarlo, concreta"}]}`;
+    const d = await aiJSON(sysBase(), user, 0.3);
+    const L = (d.problemas || d.issues || (Array.isArray(d) ? d : [])).map(x => ({ key: 'ia|' + norm(str(x.titulo)).slice(0, 60), grav: ['alta', 'media', 'baja'].includes(str(x.gravedad).toLowerCase()) ? str(x.gravedad).toLowerCase() : 'media', titulo: str(x.titulo), texto: str(x.explicacion), sugerencia: str(x.sugerencia), elementos: [].concat(x.elementos || []).map(str), src: 'ia' })).filter(x => x.titulo);
+    p.issues = L; p.issuesAt = Date.now(); saveNow(); toast(L.length ? L.length + ' posibles incoherencias' : 'La IA no ha encontrado contradicciones');
+  } catch (e) { toast(e.message, 1); }
+  ui.issuesBusy = false; busy(0); render();
+}
+
+// ---------- vistas ----------
+const TABS = [['ajustes', '⚒️ Forjar'], ['universo', '🗺️ Universo'], ['guia', '📖 Guía'], ['campana', '🎲 Campaña'], ['coherencia', '🧩 Coherencia'], ['exportar', '📤 Exportar']];
+const TEMAS = ['Intriga política', 'Exploración', 'Terror', 'Guerra', 'Misterio', 'Religión y fe', 'Comercio', 'Supervivencia', 'Épica', 'Horror cósmico', 'Piratas', 'Mitología', 'Venganza', 'Reliquias', 'Revolución'];
+const ESCALAS = ['aldea', 'región', 'reino', 'continente', 'planeta', 'galaxia', 'multiverso'];
+const PREMISAS = ['Un archipiélago de islas flotantes sostenidas por cristales que se están apagando, y cada gremio cree tener la cura.', 'Tras una guerra de dioses, los supervivientes viven en una ciudad construida sobre el esqueleto de un titán que empieza a moverse.', 'Un imperio de comerciantes de sueños donde dormir es una moneda y alguien está falsificando pesadillas.', 'Un desierto que fue mar: los barcos de arena siguen las mareas de polvo en busca de las ciudades hundidas.', 'Una república de bibliotecarios guerreros que custodian libros capaces de reescribir la realidad.'];
+const ESTADOS = ['', 'Desconocido', 'Conocido', 'Aliado', 'Hostil', 'Neutral', 'Visitado', 'Destruido', 'Muerto', 'Desaparecido'];
+const QEST = [['pendiente', 'Pendientes'], ['activa', 'Activas'], ['resuelta', 'Resueltas'], ['fallida', 'Fallidas']];
+
+function render() {
+  const p = cur();
+  const sel = $('#projSel'); sel.innerHTML = DB.projects.map(x => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+  $('#tabs').innerHTML = TABS.map(([k, l]) => `<button class="tab ${ui.tab === k ? 'on' : ''}" data-act="tab" data-v="${k}">${l}</button>`).join('');
+  const v = $('#view'); const st = window.scrollY;
+  v.innerHTML = ({ ajustes: vAjustes, universo: vUniverso, guia: vGuia, campana: vCampana, coherencia: vCoherencia, exportar: vExportar })[ui.tab](p);
+  window.scrollTo(0, st);
+}
+const slider = (k, lab, a, b, v) => `<label>${lab} <span class="val" id="v-${k}"></span></label><input type="range" min="0" max="100" step="1" value="${v}" data-slider="${k}"><div class="slider"><span>${a}</span><span>${b}</span></div>`;
+function vAjustes(p) {
+  const a = p.ajustes; const run = ui.busy === 'forge';
+  const stg = STAGES.map(s => { const n = p.ents.filter(e => e.type === s.type).length; const stt = ui.stageSt[s.id] || ''; return `<div class="stage ${stt === 'run' ? 'run' : ''} ${stt.startsWith('err') ? 'err' : ''}"><input type="checkbox" data-stage="${s.id}" ${ui.sel && ui.sel[s.id] === false ? '' : 'checked'} ${run ? 'disabled' : ''} aria-label="${esc(s.label)}"><span>${TYPES[s.type].icon} ${esc(s.label)}</span><span class="st">${stt === 'run' ? '<span class="spin"></span> generando…' : stt.startsWith('err') ? '⚠️ falló' : stt === 'ok' ? '✅ listo' : ''} ${n ? '<span class="badge">' + n + '</span>' : ''}</span></div>`; }).join('');
+  const err = Object.values(ui.stageSt).find(x => String(x).startsWith('err:'));
+  return `<h2 class="h2">Forjar un universo</h2><p class="mut">Describe tu idea, ajusta los mandos y la IA generará el universo por etapas, cada una apoyándose en lo ya creado para que todo encaje. Después puedes editar, bloquear y regenerar lo que quieras.</p>
+  <div class="two"><div class="card"><label>Nombre del universo</label><input data-proj="name" value="${esc(p.name)}">
+  <label>Premisa o idea (déjala corta, o vacía para sorprenderte)</label><textarea data-proj="premise" rows="5" placeholder="Ej.: un mundo donde la magia se paga con recuerdos…">${esc(p.premise)}</textarea>
+  <div class="row" style="margin-top:8px"><button class="btn sm" data-act="surprise">💡 Sorpréndeme</button></div>
+  <label>Escala</label><select data-aj="escala">${ESCALAS.map(x => `<option ${a.escala === x ? 'selected' : ''}>${x}</option>`).join('')}</select>
+  <label>Temas</label><div class="chips">${TEMAS.map(t => `<button class="chip ${a.temas.includes(t) ? 'on' : ''}" data-act="tema" data-v="${esc(t)}">${t}</button>`).join('')}</div>
+  <label>Sistema de juego habitual (opcional, solo orienta el estilo)</label><input data-aj="sistema" value="${esc(a.sistema)}" placeholder="D&D 5e, Pathfinder, Savage Worlds…">
+  <label>Jugadores en la mesa</label><input data-aj="jugadores" value="${esc(a.jugadores)}" inputmode="numeric">
+  <label>Vetos y gustos de la mesa (opcional)</label><textarea data-aj="vetos" rows="2" placeholder="Sin elfos; mucho misterio; nada de violencia gráfica…">${esc(a.vetos)}</textarea></div>
+  <div class="card">${slider('tono', 'Tono', 'Sombrío', 'Heroico', a.tono)}${slider('magia', 'Nivel de magia', 'Ninguna', 'Omnipresente', a.magia)}${slider('tecnologia', 'Nivel tecnológico', 'Edad de piedra', 'Futurista', a.tecnologia)}${slider('crudeza', 'Crudeza', 'Todos los públicos', 'Muy adulto', a.crudeza)}
+  <p class="mut sm" style="margin-top:14px">Los ajustes se pueden cambiar en cualquier momento: afectan a lo que generes a partir de ahora y a las regeneraciones.</p></div></div>
+  <h3 class="h3 sec">Etapas de generación</h3><div class="card">${stg}
+  <label>Indicación extra para esta forja (opcional)</label><input id="extra" placeholder="Ej.: que haya un volcán importante; nombres de inspiración nórdica…">
+  <div class="row" style="margin-top:12px"><button class="btn pri" data-act="forge" ${run ? 'disabled' : ''}>${run ? '<span class="spin"></span> Forjando…' : '⚒️ Forjar universo'}</button><button class="btn" data-act="example" ${run ? 'disabled' : ''}>📜 Cargar universo de ejemplo</button></div>
+  <p class="mut sm">Las etapas marcadas reemplazan sus elementos <b>no bloqueados</b> (🔒 protege lo que ya te gusta). Cada etapa tarda unos segundos. La IA es gratuita y tiene cuota diaria.</p>
+  ${err ? `<p style="color:var(--red)">⚠️ ${esc(String(err).slice(4))} <button class="btn sm" data-act="forge">Reintentar</button></p>` : ''}</div>`;
+}
+
+function card(p, e) {
+  const nrel = e.rels.length;
+  return `<div class="card hov" data-act="open" data-v="${e.id}"><div class="row spread"><span class="badge">${TYPES[e.type].icon} ${TYPES[e.type].label}</span><span>${e.locked ? '<span class="lock" title="Bloqueado">🔒</span>' : ''}</span></div><h3 class="h3" style="margin:8px 0 4px">${esc(e.name)}</h3>${e.fecha ? `<div class="mut sm">⏳ ${esc(e.fecha)}</div>` : ''}<p class="mut sm" style="margin:4px 0 8px">${esc(clip(e.summary || e.body, 150))}</p><div class="row">${e.tags.map(t => `<span class="badge v">${esc(t)}</span>`).join('')}${nrel ? `<span class="badge a">🔗 ${nrel}</span>` : ''}${e.estado ? `<span class="badge g">${esc(e.estado)}</span>` : ''}</div></div>`;
+}
+function vUniverso(p) {
+  const types = WORLD_TYPES.concat(['mundo']);
+  const list = p.ents.filter(e => e.type !== 'guia' && (ui.filter === 'all' || e.type === ui.filter) && (!ui.q || norm(e.name + ' ' + e.summary + ' ' + e.body + ' ' + e.tags.join(' ')).includes(norm(ui.q))));
+  const cnt = t => p.ents.filter(e => e.type === t).length;
+  const chips = `<button class="chip ${ui.filter === 'all' ? 'on' : ''}" data-act="filter" data-v="all">Todo (${p.ents.filter(e => e.type !== 'guia').length})</button>` + ['mundo'].concat(WORLD_TYPES).map(t => `<button class="chip ${ui.filter === t ? 'on' : ''}" data-act="filter" data-v="${t}">${TYPES[t].icon} ${TYPES[t].plural.replace('Historia y cronología', 'Historia')} (${cnt(t)})</button>`).join('');
+  const addT = ui.filter === 'all' ? 'lugar' : ui.filter;
+  let body;
+  if (!p.ents.filter(e => e.type !== 'guia').length) body = `<div class="empty"><div class="big">🌋</div><p>Aún no hay universo. Ve a <b>Forjar</b> para generarlo con IA, carga el ejemplo o crea elementos a mano.</p><button class="btn pri" data-act="tab" data-v="ajustes">⚒️ Ir a Forjar</button></div>`;
+  else if (ui.mode === 'tl') {
+    const ev = list.filter(e => e.type === 'evento').sort((a, b) => (a.orden || 0) - (b.orden || 0));
+    body = ev.length ? `<div class="tl">${ev.map(e => `<div class="ev"><div class="card hov" data-act="open" data-v="${e.id}"><div class="row spread"><b style="color:var(--amber)">${esc(e.fecha || 'Sin fecha')}</b>${e.locked ? '🔒' : ''}</div><h3 class="h3">${esc(e.name)}</h3><p class="mut sm" style="margin:4px 0 0">${esc(clip(e.summary || e.body, 220))}</p></div></div>`).join('')}</div>` : '<div class="empty">No hay eventos que mostrar.</div>';
+  } else body = list.length ? `<div class="grid">${list.map(e => card(p, e)).join('')}</div>` : '<div class="empty">Nada coincide con el filtro.</div>';
+  return `<div class="row spread"><h2 class="h2">${esc(p.name)}</h2><div class="row"><button class="btn sm ${ui.mode === 'cards' ? 'pri' : ''}" data-act="mode" data-v="cards">Tarjetas</button><button class="btn sm ${ui.mode === 'tl' ? 'pri' : ''}" data-act="mode" data-v="tl">⏳ Cronología</button></div></div>
+  <div class="row" style="margin:10px 0"><input id="q" style="max-width:300px" placeholder="🔎 Buscar…" value="${esc(ui.q)}"><button class="btn sm" data-act="newEnt" data-v="${addT}">＋ Nuevo ${esc(TYPES[addT].label.toLowerCase())}</button><button class="btn sm amb" data-act="more" data-v="${addT === 'mundo' ? 'lugar' : addT}" ${ui.busy ? 'disabled' : ''}>${ui.busy === 'more' ? '<span class="spin"></span>' : '✨'} Añadir 3 con IA</button></div>
+  <div class="chips" style="margin-bottom:14px">${chips}</div>${body}`;
+}
+function vGuia(p) {
+  const w = p.ents.find(e => e.type === 'mundo'); const g = p.ents.filter(e => e.type === 'guia');
+  const run = ui.busy === 'forge';
+  return `<div class="row spread"><h2 class="h2">Guía del máster</h2><div class="row"><button class="btn sm" data-act="newEnt" data-v="guia">＋ Sección</button><button class="btn sm amb" data-act="regenGuide" ${ui.busy ? 'disabled' : ''}>${run ? '<span class="spin"></span>' : '✨'} Regenerar guía</button></div></div>
+  ${w ? `<div class="card hov" data-act="open" data-v="${w.id}" style="margin:12px 0"><span class="badge">🌍 Mundo</span> ${w.locked ? '🔒' : ''}<h3 class="h2" style="margin-top:8px">${esc(w.name)}</h3><p class="mut" style="font-style:italic">${esc(w.summary)}</p><pre class="b">${esc(w.body)}</pre></div>` : ''}
+  ${g.length ? g.map(e => `<div class="card hov" data-act="open" data-v="${e.id}" style="margin-bottom:12px"><div class="row spread"><h3 class="h3">${esc(e.name)}</h3>${e.locked ? '🔒' : ''}</div><pre class="b">${esc(e.body)}</pre></div>`).join('') : '<div class="empty"><div class="big">📖</div><p>La guía se genera al final de la forja, usando todo el universo como contexto. También puedes escribirla tú.</p></div>'}`;
+}
+
+function nm(id) { const e = ent(id); return e ? e.name : '—'; }
+const optEnts = (p, types, sel, none) => `<option value="">${none || '—'}</option>` + p.ents.filter(e => types.includes(e.type)).map(e => `<option value="${e.id}" ${e.id === sel ? 'selected' : ''}>${esc(e.name)}</option>`).join('');
+function vCampana(p) {
+  const sub = [['sesiones', '📅 Sesiones'], ['misiones', '🎯 Misiones'], ['seguimiento', '👁️ Seguimiento']];
+  let b = '';
+  if (ui.sub === 'sesiones') {
+    const L = p.sesiones.slice().sort((a, b) => (a.num || 0) - (b.num || 0));
+    b = `<div class="row" style="margin-bottom:12px"><button class="btn sm pri" data-act="newSes">＋ Nueva sesión</button><button class="btn sm amb" data-act="aiSes" ${ui.busy ? 'disabled' : ''}>${ui.busy === 'ses' ? '<span class="spin"></span>' : '✨'} Proponer sesión con IA</button></div>` +
+      (L.length ? `<div class="grid">${L.map(s => `<div class="card hov" data-act="openSes" data-v="${s.id}"><div class="row spread"><span class="badge a">Sesión ${s.num || '?'}</span><span class="badge ${s.estado === 'jugada' ? 'g' : ''}">${s.estado}</span></div><h3 class="h3" style="margin:8px 0 4px">${esc(s.titulo)}</h3><p class="mut sm">${esc(clip(s.resumen, 140))}</p><div class="mut sm">${s.fecha ? '📆 ' + esc(s.fecha) + ' · ' : ''}${(s.ents || []).length} elementos</div></div>`).join('')}</div>` : '<div class="empty"><div class="big">📅</div>Planifica tus sesiones: escenas, elementos del universo implicados y lo que pasó.</div>');
+  } else if (ui.sub === 'misiones') {
+    b = `<div class="row" style="margin-bottom:12px"><button class="btn sm pri" data-act="newQuest">＋ Nueva misión</button><button class="btn sm" data-act="questFromHook">🪝 Desde un gancho</button><button class="btn sm amb" data-act="aiQuest" ${ui.busy ? 'disabled' : ''}>${ui.busy === 'quest' ? '<span class="spin"></span>' : '✨'} Misión con IA</button></div><div class="kan">${QEST.map(([k, l]) => `<div class="kcol"><h4>${l} (${p.misiones.filter(m => m.estado === k).length})</h4>${p.misiones.filter(m => m.estado === k).map(m => `<div class="q" data-act="openQuest" data-v="${m.id}"><b>${esc(m.titulo)}</b><div class="mut sm">${m.dador ? '🎭 ' + esc(nm(m.dador)) : ''}${m.lugar ? ' · 🗺️ ' + esc(nm(m.lugar)) : ''}</div></div>`).join('')}</div>`).join('')}</div>`;
+  } else {
+    const L = p.ents.filter(e => ['pnj', 'lugar', 'faccion'].includes(e.type) && (ui.qfilter === 'all' || e.type === ui.qfilter));
+    b = `<div class="chips" style="margin-bottom:12px">${[['all', 'Todos'], ['pnj', '🎭 PNJ'], ['lugar', '🗺️ Lugares'], ['faccion', '⚔️ Facciones']].map(([k, l]) => `<button class="chip ${ui.qfilter === k ? 'on' : ''}" data-act="qf" data-v="${k}">${l}</button>`).join('')}</div>` + (L.length ? `<div class="card">${L.map(e => `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span style="flex:1;min-width:140px"><span class="link" data-act="open" data-v="${e.id}">${TYPES[e.type].icon} ${esc(e.name)}</span><div class="mut sm">${esc(clip(e.notasCamp, 80))}</div></span><select data-track="${e.id}" style="width:150px">${ESTADOS.map(s => `<option ${e.estado === s ? 'selected' : ''}>${s}</option>`).join('')}</select><span class="mut sm" style="width:90px">${p.sesiones.filter(s => (s.ents || []).includes(e.id)).length} sesiones</span></div>`).join('')}</div>` : '<div class="empty">Sin elementos que seguir.</div>');
+  }
+  return `<h2 class="h2">Gestor de campaña</h2><div class="sub">${sub.map(([k, l]) => `<button class="chip ${ui.sub === k ? 'on' : ''}" data-act="sub" data-v="${k}">${l}</button>`).join('')}</div>${b}`;
+}
+function vCoherencia(p) {
+  const loc = localIssues(p); const all = loc.concat((p.issues || []).filter(i => !p.ignored.includes(i.key)));
+  const ord = { alta: 0, media: 1, baja: 2 }; all.sort((a, b) => ord[a.grav] - ord[b.grav]);
+  return `<h2 class="h2">Comprobador de coherencia</h2><p class="mut">Revisión automática de nombres, relaciones y fechas, más una revisión de continuidad con IA que lee todo el universo y busca contradicciones.</p>
+  <div class="row"><button class="btn amb" data-act="aiCheck" ${ui.issuesBusy ? 'disabled' : ''}>${ui.issuesBusy ? '<span class="spin"></span> Revisando…' : '🧠 Revisar con IA'}</button>${p.issuesAt ? `<span class="mut sm">Última revisión IA: ${new Date(p.issuesAt).toLocaleString('es-ES')}</span>` : ''}</div>
+  <div style="margin-top:14px">${all.length ? all.map((i, n) => `<div class="card iss ${i.grav}" style="margin-bottom:10px"><div class="row spread"><b>${esc(i.titulo)}</b><span class="badge ${i.grav === 'alta' ? 'r' : i.grav === 'media' ? 'a' : 'v'}">${i.grav}${i.src === 'ia' ? ' · IA' : ''}</span></div><p class="mut sm" style="margin:6px 0">${esc(i.texto)}</p>${i.sugerencia ? `<p class="sm">💡 ${esc(i.sugerencia)}</p>` : ''}<div class="row">${i.elementos.map(x => { const t = findByName(p, x); return t ? `<button class="btn sm" data-act="open" data-v="${t.id}">${TYPES[t.type].icon} ${esc(t.name)}</button>` : ''; }).join('')}${i.src === 'ia' && i.sugerencia ? `<button class="btn sm pri" data-act="fixIssue" data-v="${esc(i.key)}" ${ui.busy ? 'disabled' : ''}>✨ Arreglar con IA</button>` : ''}<button class="btn sm" data-act="ignoreIssue" data-v="${esc(i.key)}">Ignorar</button></div></div>`).join('') : '<div class="empty"><div class="big">✅</div>Sin incoherencias detectadas.</div>'}</div>`;
+}
+function vExportar(p) {
+  const o = ui.exp || (ui.exp = { secretos: true, guia: true, campana: true });
+  const n = p.ents.length;
+  return `<h2 class="h2">Exportar e importar</h2><p class="mut">${n} elementos · ${p.sesiones.length} sesiones · ${p.misiones.length} misiones.</p>
+  <div class="card"><div class="sw"><input type="checkbox" id="o-sec" ${o.secretos ? 'checked' : ''}><label for="o-sec" style="margin:0;font-size:14px;color:var(--txt)">Incluir secretos del máster</label></div><div class="sw"><input type="checkbox" id="o-gui" ${o.guia ? 'checked' : ''}><label for="o-gui" style="margin:0;font-size:14px;color:var(--txt)">Incluir la guía del máster</label></div><div class="sw"><input type="checkbox" id="o-cam" ${o.campana ? 'checked' : ''}><label for="o-cam" style="margin:0;font-size:14px;color:var(--txt)">Incluir sesiones, misiones y seguimiento</label></div>
+  <div class="row" style="margin-top:12px"><button class="btn pri" data-act="exPdf">📄 PDF (A4)</button><button class="btn" data-act="exMd">📝 Markdown</button><button class="btn" data-act="exJson">💾 JSON (copia completa)</button></div>
+  <p class="mut sm">Para jugadores, desmarca los secretos. El JSON conserva todo y se puede volver a importar.</p></div>
+  <h3 class="h3 sec">Importar</h3><div class="card"><input type="file" id="imp" accept=".json,application/json"><p class="mut sm">Importa un JSON exportado desde Forja de Mundos; se añade como universo nuevo, sin tocar los actuales.</p></div>
+  <h3 class="h3 sec">Zona delicada</h3><div class="card"><button class="btn dan" data-act="delProject">🗑️ Eliminar este universo</button></div>`;
+}
+
+// ---------- cajón de edición ----------
+function openDrawer(k, id) { ui.edit = { k, id }; renderDrawer(); $('#drawer').classList.add('on'); $('#scrim').classList.add('on'); }
+function closeDrawer() { ui.edit = null; $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); render(); }
+const fld = (f, lab, v, o) => { o = o || {}; return `<label>${lab}</label>` + (o.area ? `<textarea data-f="${f}" rows="${o.rows || 3}">${esc(v)}</textarea>` : `<input data-f="${f}" value="${esc(v)}">`); };
+function renderDrawer() {
+  const d = $('#drawer'); const p = cur(); if (!ui.edit) { d.innerHTML = ''; return; }
+  const { k, id } = ui.edit; let h = '';
+  if (k === 'ent') {
+    const e = ent(id); if (!e) { d.innerHTML = ''; return; } const run = ui.busy === 'ent';
+    const back = p.ents.filter(x => x.id !== e.id && x.rels.some(r => r.to === e.id));
+    h = `<div class="row spread"><span class="badge">${TYPES[e.type].icon} ${TYPES[e.type].label}</span><div class="row"><button class="btn sm ${e.locked ? 'amb' : ''}" data-act="lock" title="Un elemento bloqueado no se regenera ni se reemplaza">${e.locked ? '🔒 Bloqueado' : '🔓 Bloquear'}</button><button class="btn sm" data-act="closeDrawer">✕</button></div></div>
+    ${fld('name', 'Nombre', e.name)}${fld('summary', 'Resumen (1-2 frases)', e.summary, { area: 1, rows: 2 })}
+    ${e.type === 'evento' ? `<div class="row"><div style="flex:2;min-width:160px">${fld('fecha', 'Fecha en el mundo', e.fecha)}</div><div style="flex:1;min-width:90px"><label>Orden</label><input data-f="orden" type="number" value="${e.orden || 0}"></div></div>` : ''}
+    ${fld('body', 'Descripción', e.body, { area: 1, rows: 9 })}${e.type !== 'guia' ? fld('secreto', '🤫 Secretos (solo máster)', e.secreto, { area: 1, rows: 3 }) : ''}
+    <label>Etiquetas (separadas por comas)</label><input data-f="tags" value="${esc(e.tags.join(', '))}">
+    ${['pnj', 'lugar', 'faccion'].includes(e.type) ? `<div class="row"><div style="flex:1;min-width:140px"><label>Estado en la campaña</label><select data-f="estado">${ESTADOS.map(s => `<option ${e.estado === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div><div style="flex:2;min-width:180px">${fld('notasCamp', 'Notas de campaña', e.notasCamp)}</div></div>` : ''}
+    <label>Relaciones</label><div id="rels">${e.rels.map((r, i) => `<div class="rel"><span class="badge ${r.to ? '' : 'r'}">${esc(r.label)}</span>${r.to ? `<span class="link" data-act="open" data-v="${r.to}">${esc(relName(p, r))}</span>` : `<span style="color:var(--red)" title="No existe en el universo">${esc(r.name)} ⚠️</span>`}<button class="btn sm x" data-act="delRel" data-v="${i}">✕</button></div>`).join('') || '<span class="mut sm">Sin relaciones.</span>'}</div>
+    <div class="row" style="margin-top:6px"><input id="rl" placeholder="tipo (aliado de, vive en…)" style="flex:1;min-width:120px"><select id="rt" style="flex:1;min-width:140px">${optEnts(p, ORDER.filter(t => t !== 'guia'), '', 'Elegir elemento…').replace(new RegExp(`<option value="${e.id}"[^>]*>[^<]*</option>`), '')}</select><button class="btn sm" data-act="addRel">＋</button></div>
+    ${back.length ? `<label>Mencionado por</label><div class="chips">${back.map(x => `<span class="chip" data-act="open" data-v="${x.id}">${TYPES[x.type].icon} ${esc(x.name)}</span>`).join('')}</div>` : ''}
+    <div class="card" style="margin-top:16px"><b>✨ Ajustar con IA</b><p class="mut sm" style="margin:4px 0 8px">${e.locked ? 'Está bloqueado: desbloquéalo para regenerarlo.' : 'Escribe qué cambiar o déjalo vacío para una versión nueva. La IA respeta el resto del universo.'}</p><input id="instr" placeholder="Ej.: hazlo más siniestro, que sea hermana de…" ${e.locked ? 'disabled' : ''}><div class="row" style="margin-top:8px"><button class="btn pri sm" data-act="regen" ${e.locked || ui.busy ? 'disabled' : ''}>${run ? '<span class="spin"></span> Generando…' : '✨ Regenerar'}</button>${ui.prev[e.id] ? '<button class="btn sm" data-act="undo">↩ Deshacer</button>' : ''}</div></div>
+    <div class="row" style="margin-top:16px"><button class="btn sm" data-act="dup">⧉ Duplicar</button><button class="btn sm dan" data-act="delEnt">🗑️ Eliminar</button></div>`;
+  } else if (k === 'ses') {
+    const s = p.sesiones.find(x => x.id === id); if (!s) return;
+    h = `<div class="row spread"><span class="badge a">Sesión</span><button class="btn sm" data-act="closeDrawer">✕</button></div>
+    <div class="row"><div style="width:90px"><label>Nº</label><input data-f="num" type="number" value="${s.num || 1}"></div><div style="flex:1;min-width:150px">${fld('titulo', 'Título', s.titulo)}</div></div>
+    <div class="row"><div style="flex:1;min-width:140px">${fld('fecha', 'Fecha', s.fecha)}</div><div style="flex:1;min-width:140px"><label>Estado</label><select data-f="estado">${['planificada', 'jugada'].map(x => `<option ${s.estado === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div></div>
+    ${fld('resumen', 'Planteamiento', s.resumen, { area: 1, rows: 3 })}${fld('escenas', 'Escenas y notas del máster', s.escenas, { area: 1, rows: 9 })}${fld('resultado', 'Qué ocurrió (tras jugarla)', s.resultado, { area: 1, rows: 4 })}
+    <label>Elementos del universo que aparecen</label><div class="chips" style="margin-bottom:6px">${(s.ents || []).map(i => `<span class="chip on">${esc(nm(i))} <span data-act="delSesEnt" data-v="${i}">✕</span></span>`).join('') || '<span class="mut sm">Ninguno</span>'}</div>
+    <select id="sesAdd"><option value="">＋ Añadir elemento…</option>${p.ents.filter(e => !['guia', 'mundo'].includes(e.type) && !(s.ents || []).includes(e.id)).map(e => `<option value="${e.id}">${TYPES[e.type].icon} ${esc(e.name)}</option>`).join('')}</select>
+    <div class="row" style="margin-top:16px"><button class="btn sm dan" data-act="delSes">🗑️ Eliminar</button></div>`;
+  } else {
+    const m = p.misiones.find(x => x.id === id); if (!m) return;
+    h = `<div class="row spread"><span class="badge a">🎯 Misión</span><button class="btn sm" data-act="closeDrawer">✕</button></div>
+    ${fld('titulo', 'Título', m.titulo)}<label>Estado</label><select data-f="estado">${QEST.map(([k2, l]) => `<option value="${k2}" ${m.estado === k2 ? 'selected' : ''}>${l.replace(/s$/, '').replace('Pendiente', 'Pendiente')}</option>`).join('')}</select>
+    <div class="row"><div style="flex:1;min-width:150px"><label>Quién la da</label><select data-f="dador">${optEnts(p, ['pnj', 'faccion'], m.dador)}</select></div><div style="flex:1;min-width:150px"><label>Dónde</label><select data-f="lugar">${optEnts(p, ['lugar'], m.lugar)}</select></div></div>
+    ${fld('objetivo', 'Objetivo', m.objetivo, { area: 1, rows: 3 })}${fld('recompensa', 'Recompensa', m.recompensa)}${fld('notas', 'Notas', m.notas, { area: 1, rows: 4 })}
+    <div class="row" style="margin-top:16px"><button class="btn sm dan" data-act="delQuest">🗑️ Eliminar</button></div>`;
+  }
+  d.innerHTML = h;
+}
+
+// ================= BANDA SONORA (WebAudio, todo sintetizado) =================
+const SC = { ionian: [0, 2, 4, 5, 7, 9, 11], dorian: [0, 2, 3, 5, 7, 9, 10], aeolian: [0, 2, 3, 5, 7, 8, 10], phrygian: [0, 1, 3, 5, 7, 8, 10], mixolydian: [0, 2, 4, 5, 7, 9, 10], lydian: [0, 2, 4, 6, 7, 9, 11] };
+const mf = m => 440 * Math.pow(2, (m - 69) / 12);
+function hash(s) { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function O(X, type, f, t, end, dest, det) { const o = X.ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); if (det) o.detune.value = det; o.connect(dest); o.start(t); o.stop(end + 0.05); return o; }
+function ADSR(g, t, a, d, s, dur, r, pk) { const e = t + Math.max(a + d, dur); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(pk, t + a); g.gain.linearRampToValueAtTime(Math.max(pk * s, 0.0002), t + a + d); g.gain.setValueAtTime(Math.max(pk * s, 0.0002), e); g.gain.exponentialRampToValueAtTime(0.0001, e + r); return e + r; }
+function filt(X, type, f, q, dest) { const b = X.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; b.connect(dest); return b; }
+function gain(X, dest) { const g = X.ctx.createGain(); g.connect(dest); return g; }
+function noiseSrc(X, t, end, dest) { const s = X.ctx.createBufferSource(); s.buffer = X.noise; s.loop = true; s.connect(dest); s.start(t); s.stop(end + 0.05); return s; }
+function vib(X, t, end, osc, depth, rate, delay) { const l = X.ctx.createOscillator(), g = X.ctx.createGain(); l.frequency.value = rate || 5.2; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(depth, t + (delay || 0.3)); l.connect(g); osc.forEach(o => g.connect(o.detune)); l.start(t); l.stop(end + 0.05); }
+const INS = {
+  pad(X, d, t, m, dur, v) { const g = gain(X, d), f = filt(X, 'lowpass', 1300, 0.5, g); const end = ADSR(g, t, Math.min(1.6, dur * 0.4), 0.3, 0.85, dur, 1.6, 0.03 * v); const os = [O(X, 'sawtooth', mf(m), t, end, f, -8), O(X, 'sawtooth', mf(m), t, end, f, 8)]; O(X, 'sine', mf(m - 12), t, end, g); vib(X, t, end, os, 4, 4.5, 1); },
+  strings(X, d, t, m, dur, v, o) { o = o || {}; const g = gain(X, d), amp = gain(X, g), f = filt(X, 'lowpass', 2300, 0.4, amp); const end = ADSR(amp, t, o.a || 0.14, 0.2, 0.85, dur, 0.3, 0.042 * v); const os = [-10, 0, 10].map(c => O(X, 'sawtooth', mf(m), t, end, f, c)); if (o.trem) { const l = X.ctx.createOscillator(), lg = X.ctx.createGain(); l.frequency.value = 9.5; lg.gain.value = 0.014 * v; l.connect(lg); lg.connect(g.gain); l.start(t); l.stop(end + 0.1); g.gain.value = 0.5; } else vib(X, t, end, os, 7, 5.3, 0.5); },
+  spic(X, d, t, m, dur, v) { const g = gain(X, d), f = filt(X, 'lowpass', 2000, 0.6, g); ADSR(g, t, 0.008, 0.05, 0.4, dur, 0.05, 0.05 * v); O(X, 'sawtooth', mf(m), t, t + dur + 0.1, f, -6); O(X, 'sawtooth', mf(m), t, t + dur + 0.1, f, 6); },
+  brass(X, d, t, m, dur, v) { const g = gain(X, d), f = filt(X, 'lowpass', 400, 1, g); f.frequency.setValueAtTime(380, t); f.frequency.linearRampToValueAtTime(2500, t + 0.1); f.frequency.linearRampToValueAtTime(1300, t + Math.max(0.2, dur)); const end = ADSR(g, t, 0.05, 0.12, 0.8, dur, 0.18, 0.055 * v); O(X, 'sawtooth', mf(m), t, end, f, -4); O(X, 'sawtooth', mf(m), t, end, f, 4); O(X, 'square', mf(m - 12), t, end, f, 0); },
+  flute(X, d, t, m, dur, v) { const g = gain(X, d); const end = ADSR(g, t, 0.07, 0.1, 0.85, dur, 0.25, 0.075 * v); const os = [O(X, 'sine', mf(m), t, end, g), O(X, 'triangle', mf(m * 1 + 12), t, end, gain(X, g))]; vib(X, t, end, os.slice(0, 1), 9, 5, 0.35); const n = gain(X, g); n.gain.value = 0.02; noiseSrc(X, t, end, filt(X, 'bandpass', 3200, 1, n)); },
+  fiddle(X, d, t, m, dur, v) { const g = gain(X, d), f = filt(X, 'bandpass', 1900, 1.1, g); const end = ADSR(g, t, 0.03, 0.08, 0.8, dur, 0.1, 0.09 * v); const os = [O(X, 'sawtooth', mf(m), t, end, f, -5), O(X, 'sawtooth', mf(m), t, end, f, 5)]; vib(X, t, end, os, 12, 5.8, 0.15); },
+  harp(X, d, t, m, dur, v) { const g = gain(X, d); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.07 * v, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5); O(X, 'triangle', mf(m), t, t + 1.5, g); O(X, 'sine', mf(m) * 2, t, t + 1.5, gain(X, g)); },
+  pluck(X, d, t, m, dur, v) { const g = gain(X, d), f = filt(X, 'lowpass', 2200, 0.5, g); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.09 * v, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55); f.frequency.exponentialRampToValueAtTime(500, t + 0.4); O(X, 'sawtooth', mf(m), t, t + 0.6, f); O(X, 'triangle', mf(m), t, t + 0.6, f); },
+  bell(X, d, t, m, dur, v) { [[1, 1], [2.76, 0.5], [5.4, 0.22], [8.93, 0.1]].forEach(([r, a]) => { const g = gain(X, d); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.04 * v * a, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 3.6 / r ** 0.3); O(X, 'sine', mf(m) * r, t, t + 3.7, g); }); },
+  timp(X, d, t, m, dur, v) { const g = gain(X, d); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.32 * v, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.0); const o = O(X, 'sine', mf(m) * 1.5, t, t + 1.05, g); o.frequency.exponentialRampToValueAtTime(mf(m), t + 0.11); const n = gain(X, d); n.gain.setValueAtTime(0.0001, t); n.gain.linearRampToValueAtTime(0.1 * v, t + 0.004); n.gain.exponentialRampToValueAtTime(0.0001, t + 0.12); noiseSrc(X, t, t + 0.15, filt(X, 'lowpass', 320, 0.7, n)); },
+  snare(X, d, t, m, dur, v) { const n = gain(X, d); n.gain.setValueAtTime(0.0001, t); n.gain.linearRampToValueAtTime(0.11 * v, t + 0.003); n.gain.exponentialRampToValueAtTime(0.0001, t + 0.16); noiseSrc(X, t, t + 0.2, filt(X, 'bandpass', 1900, 0.8, n)); const g = gain(X, d); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.06 * v, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.1); O(X, 'sine', 190, t, t + 0.12, g); },
+  hat(X, d, t, m, dur, v) { const n = gain(X, d); n.gain.setValueAtTime(0.0001, t); n.gain.linearRampToValueAtTime(0.035 * v, t + 0.002); n.gain.exponentialRampToValueAtTime(0.0001, t + 0.05); noiseSrc(X, t, t + 0.08, filt(X, 'highpass', 7500, 0.5, n)); },
+  crash(X, d, t, m, dur, v) { const n = gain(X, d); n.gain.setValueAtTime(0.0001, t); n.gain.linearRampToValueAtTime(0.08 * v, t + 0.01); n.gain.exponentialRampToValueAtTime(0.0001, t + 2.4); noiseSrc(X, t, t + 2.5, filt(X, 'highpass', 4200, 0.5, n)); },
+  drum(X, d, t, m, dur, v) { const g = gain(X, d); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.2 * v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24); const o = O(X, 'sine', 135, t, t + 0.3, g); o.frequency.exponentialRampToValueAtTime(70, t + 0.12); const n = gain(X, d); n.gain.setValueAtTime(0.0001, t); n.gain.linearRampToValueAtTime(0.05 * v, t + 0.003); n.gain.exponentialRampToValueAtTime(0.0001, t + 0.06); noiseSrc(X, t, t + 0.1, filt(X, 'bandpass', 800, 1, n)); },
+  choir(X, d, t, m, dur, v, o) { const vow = (o && o.vowel === 'o') ? [450, 820] : [800, 1150]; const g = gain(X, d); const end = ADSR(g, t, Math.min(1.3, dur * 0.35), 0.3, 0.85, dur, 1.6, 0.05 * v); const src = X.ctx.createGain(); vow.forEach(fr => { const b = filt(X, 'bandpass', fr, 5, g); src.connect(b); }); const os = [-11, 0, 11].map(c => O(X, 'sawtooth', mf(m), t, end, src, c)); vib(X, t, end, os, 6, 4.8, 0.8); },
+  swell(X, d, t, m, dur, v) { const g = gain(X, d), f = filt(X, 'lowpass', 200, 2, g); f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(3200, t + dur * 0.9); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.055 * v, t + dur * 0.9); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); noiseSrc(X, t, t + dur, f); },
+  synth(X, d, t, m, dur, v) { const g = gain(X, d), f = filt(X, 'lowpass', 2600, 2, g); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.03 * v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22); O(X, 'square', mf(m), t, t + 0.25, f); }
+};
+const MSTYLE = {
+  long: [[[0, 8], [8, 8]], [[0, 12], [12, 4]], [[0, 6], [6, 2], [8, 8]], [[0, 8], [8, 4], [12, 4]]],
+  mid: [[[0, 4], [4, 4], [8, 8]], [[0, 6], [6, 2], [8, 4], [12, 4]], [[0, 4], [4, 4], [8, 4], [12, 4]], [[0, 2], [2, 2], [4, 4], [8, 8]]],
+  run: [[[0, 2], [2, 2], [4, 2], [6, 2], [8, 2], [10, 2], [12, 4]], [[0, 4], [4, 2], [6, 2], [8, 2], [10, 2], [12, 2], [14, 2]], [[0, 2], [2, 2], [4, 4], [8, 2], [10, 2], [12, 4]]],
+  punch: [[[0, 3], [3, 3], [6, 2], [8, 4], [12, 4]], [[0, 2], [2, 2], [4, 4], [8, 3], [11, 5]], [[0, 4], [4, 2], [6, 2], [8, 8]]],
+  fanfare: [[[0, 6], [6, 2], [8, 8]], [[0, 3], [3, 1], [4, 4], [8, 6], [12, 4]], [[0, 4], [4, 4], [8, 6], [14, 2]]]
+};
+function makeMotif(s) {
+  const T = MSTYLE[s.M.motifStyle], r = s.rand; const walk = (rh, startDeg, end) => { let d = startDeg; return rh.map((bar, bi) => bar.map(([st, len], k) => { const step = [-2, -1, -1, 0, 1, 1, 2, 3][Math.floor(r() * 8)]; d = Math.max(-1, Math.min(9, d + step)); const last = bi === 3 && k === bar.length - 1; return { step: st, len, deg: last ? end : d }; })); };
+  const rhA = [0, 1, 2, 3].map(() => T[Math.floor(r() * T.length)]), rhB = [0, 1, 2, 3].map(() => T[Math.floor(r() * T.length)]);
+  const st = [0, 2, 4][Math.floor(r() * 3)];
+  const A = walk(rhA, st, 4); const A2 = JSON.parse(JSON.stringify(A)); const lastBar = A2[3]; lastBar[lastBar.length - 1].deg = 0; const B = walk(rhB, st + 1, 2);
+  return { A, A2, B, seq: ['A', 'A2', 'B', 'A2'] };
+}
+const MOODS = {
+  exploracion: { trim: 0.58, label: 'Exploración', emoji: '🧭', bpm: 88, root: 50, per: 2, prog: [0, 4, 5, 3], motifStyle: 'long', extras: 1, mode: A => A.tono < 30 ? 'aeolian' : A.tono < 45 ? 'dorian' : A.tono < 72 ? 'ionian' : 'lydian',
+    bar(s, bar) { if (bar % s.per === 0) { const c = s.chordTones(bar), L = s.per * 16 * s.d16; c.forEach(d => s.play('pad', s.deg(d, 0), L, 0.8)); s.play('strings', s.deg(c[0], -1), L, 0.9); } },
+    step(s, i, bar) { if (i % 2 === 0) { const ct = s.chordTones(bar), p = [0, 1, 2, 1, 2, 1, 0, 1][(i / 2) % 8]; s.play('harp', s.deg(ct[p], i % 8 === 6 ? 2 : 1), 1.4, 0.55); } if (i === 0 && bar % 4 === 0) s.play('timp', s.deg(0, -1), 2, 0.55); s.melody(i, bar, 'flute', 1); } },
+  taberna: { trim: 1.2, label: 'Taberna', emoji: '🍺', bpm: 118, root: 55, per: 1, prog: [0, 3, 0, 4, 0, 3, 4, 0], motifStyle: 'run', mode: A => A.tono < 30 ? 'dorian' : 'mixolydian',
+    bar() { },
+    step(s, i, bar) { const c = s.chordDeg(bar); if (i === 0) s.play('pluck', s.deg(c, -1), 0.5, 1); if (i === 8) s.play('pluck', s.deg(c + 4, -1), 0.5, 0.9); if (i === 4 || i === 12) s.chordTones(bar).forEach((d, k) => s.play('pluck', s.deg(d, 0), 0.3, 0.55, k * 0.4)); if (i === 0 || i === 8) s.play('drum', 0, 0.2, 1); if (i === 4 || i === 12) s.play('drum', 0, 0.2, 0.55); if (i % 2 === 1) s.play('hat', 0, 0.05, 0.6); s.melody(i, bar, 'fiddle', 1); } },
+  tension: { trim: 0.99, label: 'Tensión', emoji: '🕯️', bpm: 66, root: 36, per: 2, prog: [0, 1, 0, 3], scale: 'phrygian', extras: 1,
+    bar(s, bar) { const L = s.per * 16 * s.d16; if (bar % s.per === 0) { s.play('strings', s.deg(0, 0), L, 0.9); s.play('strings', s.deg(1, 1), L, 0.45, 0, { a: 1.2 }); s.play('strings', s.deg(4, 1), L, 0.5, 0, { trem: 1 }); s.play('pad', s.deg(s.chordDeg(bar), 0), L, 0.9); } if (bar % 8 === 4) s.play('bell', s.deg(1, 3), 4, 0.6); if (bar % 4 === 2 && s.rand() < 0.5) s.play('swell', 0, 7, 1); },
+    step(s, i, bar) { if (i === 0) s.play('timp', s.deg(0, -1), 1, 0.8); if (i === 3) s.play('timp', s.deg(0, -1), 1, 0.45); } },
+  batalla: { trim: 0.49, label: 'Batalla', emoji: '⚔️', bpm: 148, root: 38, per: 1, prog: [0, 5, 6, 4], motifStyle: 'punch', extras: 1, mode: A => A.tono > 60 ? 'dorian' : 'aeolian',
+    bar(s, bar) { const c = s.chordTones(bar), L = 16 * s.d16; c.forEach(d => s.play('choir', s.deg(d, 1), L, 0.9, 0, { vowel: 'a' })); s.play('brass', s.deg(c[0], -1), L, 0.8); if (bar % 4 === 0) s.play('crash', 0, 2, 1); },
+    step(s, i, bar) { const c = s.chordDeg(bar); s.play('spic', s.deg(i % 8 < 4 ? c : c + 4, 0), s.d16 * 1.2, i % 4 === 0 ? 0.9 : 0.5); if ([0, 6, 8, 12].includes(i)) s.play('timp', s.deg(0, -1), 1, 0.9); if (i === 4 || i === 12) s.play('snare', 0, 0.2, 1); if (i % 2 === 0) s.play('hat', 0, 0.05, 0.5); s.melody(i, bar, 'brass', 1); } },
+  misterio: { trim: 1.2, label: 'Misterio', emoji: '🔮', bpm: 56, root: 52, per: 2, prog: [0, 5, 3, 6], scale: 'aeolian', extras: 1,
+    bar(s, bar) { const L = s.per * 16 * s.d16; if (bar % s.per === 0) { s.chordTones(bar).forEach(d => s.play('choir', s.deg(d, 0), L, 0.8, 0, { vowel: 'o' })); s.play('strings', s.deg(0, -1), L, 0.8); s.play('pad', s.deg(s.chordDeg(bar) + 4, 1), L, 0.6); } if (bar % 4 === 2) s.play('swell', 0, 6, 0.8); },
+    step(s, i, bar) { if (i % 4 === 0 && s.rand() < 0.34) s.play('bell', s.deg([0, 2, 4, 5, 7, 9][Math.floor(s.rand() * 6)], 1 + Math.floor(s.rand() * 2)), 3, 0.7 + s.rand() * 0.3); } },
+  victoria: { trim: 0.5, label: 'Victoria solemne', emoji: '🏆', bpm: 76, root: 46, per: 1, prog: [0, 3, 4, 0, 5, 3, 4, 0], motifStyle: 'fanfare', extras: 1, mode: A => A.tono > 72 ? 'lydian' : 'ionian',
+    bar(s, bar) { const c = s.chordTones(bar), L = 16 * s.d16; c.forEach(d => s.play('choir', s.deg(d, 1), L, 0.9, 0, { vowel: 'a' })); s.play('brass', s.deg(c[0], -1), L, 0.8); s.play('strings', s.deg(c[0], 0), L, 0.7); if (bar % 8 === 0) s.play('crash', 0, 2, 1); },
+    step(s, i, bar) { if (i % 2 === 0) { const ct = s.chordTones(bar); s.play('harp', s.deg(ct[(i / 2) % 3], 2), 1.4, 0.5); } if (i === 0 && bar % 2 === 0) s.play('timp', s.deg(0, -1), 2, 0.8); if (bar % 8 === 7 && i >= 8 && i % 2 === 0) s.play('timp', s.deg(0, -1), 1, 0.4 + i / 24); s.melody(i, bar, 'brass', 1); s.melody(i, bar, 'flute', 2); } }
+};
+class Session {
+  constructor(eng, key, at, fade, A) {
+    this.eng = eng; this.X = eng.X; this.key = key; this.M = MOODS[key]; this.A = A; this.rand = rng(eng.seed + hash(key));
+    this.sc = SC[this.M.mode ? this.M.mode(A) : this.M.scale]; this.root = this.M.root; this.bpm = this.M.bpm * (0.92 + A.tono / 100 * 0.16); this.d16 = 60 / this.bpm / 4;
+    this.prog = this.M.prog; this.per = this.M.per; this.t = at; this.step = 0; this.fadeEnd = at + fade;
+    this.bus = eng.ctx.createGain(); this.bus.gain.setValueAtTime(0.0001, at); this.bus.gain.linearRampToValueAtTime(this.M.trim || 1, at + fade); this.bus.connect(eng.master); this.bus.connect(eng.send);
+    this.motif = this.M.motifStyle ? makeMotif(this) : null;
+  }
+  deg(d, o) { const n = this.sc.length, k = ((d % n) + n) % n; return this.root + this.sc[k] + 12 * (Math.floor(d / n) + (o || 0)); }
+  chordDeg(bar) { return this.prog[Math.floor(bar / this.per) % this.prog.length]; }
+  chordTones(bar) { const c = this.chordDeg(bar); return [c, c + 2, c + 4]; }
+  play(name, midi, dur, vel, dt, o) { INS[name](this.X, this.bus, this.t + (dt || 0) * this.d16, midi, dur, vel == null ? 1 : vel, o); }
+  melody(i, bar, inst, oct) {
+    if (!this.motif) return; const ph = this.motif[this.motif.seq[Math.floor(bar / 4) % 4]][bar % 4]; const n = ph.find(x => x.step === i); if (!n) return;
+    let d = n.deg; if (i % 8 === 0) { const ct = this.chordTones(bar).map(x => ((x % 7) + 7) % 7); let best = d, bd = 9; for (let k = -2; k <= 2; k++) { const dd = d + k; if (ct.includes(((dd % 7) + 7) % 7) && Math.abs(k) < bd) { best = dd; bd = Math.abs(k); } } d = best; }
+    this.play(inst, this.deg(d, oct), n.len * this.d16 * 0.95, 0.85 + (i % 8 === 0 ? 0.15 : 0));
+  }
+  extras(i, bar) {
+    const A = this.A; if (A.magia > 60 && i % 4 === 2 && this.rand() < 0.22) this.play('bell', this.deg([0, 2, 4, 6][Math.floor(this.rand() * 4)], 2), 3, 0.5);
+    if (A.tecnologia > 65 && i % 2 === 1) this.play('synth', this.deg(this.chordTones(bar)[(i >> 1) % 3], 2), 0.2, 0.7);
+  }
+  schedule(until) { while (this.t < until) { const i = this.step % 16, bar = Math.floor(this.step / 16); if (i === 0) this.M.bar(this, bar); this.M.step(this, i, bar); if (this.M.extras) this.extras(i, bar); this.t += this.d16; this.step++; } }
+}
+class Engine {
+  constructor(ctx, seedStr) {
+    this.ctx = ctx; this.seed = hash(seedStr || 'forja'); this.sessions = [];
+    const sr = ctx.sampleRate; const nb = ctx.createBuffer(1, sr * 2, sr), nd = nb.getChannelData(0); const r = rng(7); for (let i = 0; i < nd.length; i++) nd[i] = r() * 2 - 1;
+    this.X = { ctx, noise: nb };
+    this.out = ctx.createGain(); this.out.gain.value = 0.8; this.comp = ctx.createDynamicsCompressor(); this.comp.threshold.value = -20; this.comp.knee.value = 12; this.comp.ratio.value = 4; this.comp.attack.value = 0.01; this.comp.release.value = 0.25;
+    this.master = ctx.createGain(); this.master.gain.value = 0.9; this.master.connect(this.comp); this.lim = ctx.createDynamicsCompressor(); this.lim.threshold.value = -4; this.lim.knee.value = 0; this.lim.ratio.value = 20; this.lim.attack.value = 0.002; this.lim.release.value = 0.1; this.comp.connect(this.lim); this.lim.connect(this.out); this.out.connect(ctx.destination);
+    const len = Math.floor(sr * 2.8), ir = ctx.createBuffer(2, len, sr); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c), rr = rng(11 + c); for (let i = 0; i < len; i++) d[i] = (rr() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    this.conv = ctx.createConvolver(); this.conv.buffer = ir; this.send = ctx.createGain(); this.send.gain.value = 0.32; this.send.connect(this.conv); const wet = ctx.createGain(); wet.gain.value = 0.9; this.conv.connect(wet); wet.connect(this.master);
+  }
+  start(key, o) {
+    o = o || {}; const at = o.at != null ? o.at : this.ctx.currentTime + 0.05, fade = o.fade == null ? 3 : o.fade;
+    this.sessions.forEach(s => { if (!s.out) { s.out = true; s.bus.gain.cancelScheduledValues(at); s.bus.gain.setValueAtTime(o.at != null ? (s.M.trim || 1) : Math.max(s.bus.gain.value, 0.0001), at); s.bus.gain.linearRampToValueAtTime(0.0001, at + fade); s.fadeEnd = at + fade; } });
+    const s = new Session(this, key, at, fade, Object.assign({ tono: 50, magia: 50, tecnologia: 30 }, o.adapt)); this.sessions.push(s); return s;
+  }
+  schedule(until) { this.sessions.forEach(s => { if (!s.out || s.t < s.fadeEnd) s.schedule(Math.min(until, s.out ? s.fadeEnd : until)); }); }
+  tick() { const now = this.ctx.currentTime; this.schedule(now + 0.7); this.sessions = this.sessions.filter(s => !(s.out && now > s.fadeEnd + 4)); }
+}
+async function renderMood(key, sec, adapt, seed, switchTo) {
+  const sr = 32000, oc = new OfflineAudioContext(2, sr * sec, sr), e = new Engine(oc, seed || 'test'); e.start(key, { at: 0, fade: 0.4, adapt });
+  if (switchTo) { e.schedule(switchTo.at); e.start(switchTo.key, { at: switchTo.at, fade: switchTo.fade, adapt }); }
+  e.schedule(sec); const b = await oc.startRendering(); const L = b.getChannelData(0), R = b.getChannelData(1); let pk = 0, ss = 0, clip = 0; for (let i = 0; i < L.length; i++) { const a = Math.max(Math.abs(L[i]), Math.abs(R[i])); if (a > pk) pk = a; if (a >= 0.999) clip++; ss += L[i] * L[i] + R[i] * R[i]; }
+  return { buf: b, peak: pk, rms: Math.sqrt(ss / (L.length * 2)), clip, seconds: b.duration };
+}
+function wavBytes(buf) { const n = buf.length, ch = 2, sr = buf.sampleRate, d = new DataView(new ArrayBuffer(44 + n * 4)); const w = (o, s) => [...s].forEach((c, i) => d.setUint8(o + i, c.charCodeAt(0))); w(0, 'RIFF'); d.setUint32(4, 36 + n * 4, true); w(8, 'WAVEfmt '); d.setUint32(16, 16, true); d.setUint16(20, 1, true); d.setUint16(22, 2, true); d.setUint32(24, sr, true); d.setUint32(28, sr * 4, true); d.setUint16(32, 4, true); d.setUint16(34, 16, true); w(36, 'data'); d.setUint32(40, n * 4, true); const L = buf.getChannelData(0), R = buf.getChannelData(1); for (let i = 0; i < n; i++) { d.setInt16(44 + i * 4, Math.max(-1, Math.min(1, L[i])) * 32767, true); d.setInt16(46 + i * 4, Math.max(-1, Math.min(1, R[i])) * 32767, true); } return new Uint8Array(d.buffer); }
+
+// ----- reproductor -----
+const MU = { eng: null, ctx: null, playing: false, mood: null, vol: 0.7, muted: false, adapt: true, timer: null, open: false, wasPlaying: false };
+try { Object.assign(MU, JSON.parse(localStorage.getItem('forja.audio') || '{}'), { eng: null, ctx: null, playing: false, timer: null, open: false, wasPlaying: false }); } catch (e) { }
+const muSave = () => localStorage.setItem('forja.audio', JSON.stringify({ vol: MU.vol, muted: MU.muted, adapt: MU.adapt, mood: MU.mood }));
+function muAdapt() { return MU.adapt ? cur().ajustes : { tono: 50, magia: 50, tecnologia: 30 }; }
+function muSuggest(a) { if (a.tono < 28) return a.magia > 60 ? 'misterio' : 'tension'; if (a.tono > 72) return 'victoria'; if (a.magia > 65) return 'misterio'; return 'exploracion'; }
+function muVol() { if (!MU.eng) return; MU.eng.out.gain.setTargetAtTime(MU.muted ? 0 : 0.85 * MU.vol, MU.ctx.currentTime, 0.05); }
+function muPlay(key) {
+  if (!(window.AudioContext || window.webkitAudioContext)) { toast('Tu navegador no admite audio.', 1); return; }
+  if (!MU.ctx) { MU.ctx = new (window.AudioContext || window.webkitAudioContext)(); MU.eng = new Engine(MU.ctx, cur().name + '|' + cur().premise); MU.eng.out.gain.value = MU.muted ? 0 : 0.85 * MU.vol; }
+  if (MU.ctx.state === 'suspended') MU.ctx.resume();
+  const first = !MU.playing; MU.mood = key || MU.mood || muSuggest(cur().ajustes);
+  MU.eng.seed = hash(cur().name + '|' + cur().premise);
+  MU.eng.start(MU.mood, { fade: first ? 1.5 : 3.5, adapt: muAdapt() }); MU.playing = true; muVol();
+  clearInterval(MU.timer); MU.timer = setInterval(() => MU.eng.tick(), 120); MU.eng.tick(); muSave(); muRender();
+}
+function muStop() { if (!MU.eng) return; MU.playing = false; clearInterval(MU.timer); MU.eng.out.gain.setTargetAtTime(0, MU.ctx.currentTime, 0.25); setTimeout(() => { if (!MU.playing && MU.ctx) { MU.ctx.suspend(); MU.eng = null; MU.ctx.close(); MU.ctx = null; } }, 1200); muRender(); }
+function muRender() {
+  const b = $('#muBtn'), p = $('#muPanel'); if (!b) return; b.classList.toggle('on', MU.playing); b.textContent = MU.playing ? '🎶' : '🎵'; p.style.display = MU.open ? 'block' : 'none';
+  const sug = muSuggest(cur().ajustes);
+  p.innerHTML = `<div class="row spread"><b>🎼 Banda sonora</b><button class="btn sm" data-mu="close">✕</button></div><p class="mut sm" style="margin:4px 0 8px">Música original generada en directo. ${MU.playing ? 'Pulsa otro ambiente para fundir.' : 'Elige un ambiente para empezar.'}</p>
+  <div class="mgrid">${Object.entries(MOODS).map(([k, m]) => `<button class="btn ${MU.playing && MU.mood === k ? 'pri' : ''}" data-mu="mood" data-v="${k}">${m.emoji} ${m.label}${k === sug ? ' ★' : ''}</button>`).join('')}</div>
+  <div class="row" style="margin-top:10px"><button class="btn sm" data-mu="toggle">${MU.playing ? '⏸ Parar' : '▶ Reproducir'}</button><button class="btn sm" data-mu="mute">${MU.muted ? '🔇 Silenciada' : '🔊 Sonido'}</button><input type="range" min="0" max="100" value="${Math.round(MU.vol * 100)}" data-mu="vol" style="flex:1;min-width:80px" aria-label="Volumen"></div>
+  <div class="sw"><input type="checkbox" id="muAd" data-mu="adapt" ${MU.adapt ? 'checked' : ''}><label for="muAd" style="margin:0;font-size:13px;color:var(--txt)">Adaptar al universo (tono, magia y tecnología cambian modo, tempo y colores; cada universo tiene su propio tema)</label></div>
+  <p class="mut sm" style="margin:0">★ sugerido para el tono de este universo</p>`;
+}
+function initMusicUI() {
+  const st = document.createElement('style'); st.textContent = '#muBtn{position:fixed;right:16px;bottom:16px;z-index:55;width:52px;height:52px;border-radius:50%;border:1px solid var(--teal);background:#0f1730;color:var(--txt);font-size:24px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 18px rgba(45,212,191,.3)}#muBtn.on{animation:pul 2s ease-in-out infinite}@keyframes pul{50%{box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 30px rgba(251,191,36,.6)}}#muPanel{display:none;position:fixed;right:16px;bottom:78px;z-index:55;width:min(340px,calc(100vw - 32px));background:#0c1430;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.6)}.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mgrid .btn{justify-content:center;padding:9px 6px;font-size:13px}@media(max-width:760px){#muBtn{bottom:72px}#muPanel{bottom:134px}}';
+  document.head.appendChild(st);
+  const b = document.createElement('button'); b.id = 'muBtn'; b.setAttribute('aria-label', 'Banda sonora'); b.dataset.mu = 'open'; document.body.appendChild(b);
+  const p = document.createElement('div'); p.id = 'muPanel'; document.body.appendChild(p); muRender();
+  document.addEventListener('click', e => { const t = e.target.closest('[data-mu]'); if (!t) return; const a = t.dataset.mu; if (a === 'open') { MU.open = !MU.open; muRender(); } else if (a === 'close') { MU.open = false; muRender(); } else if (a === 'mood') muPlay(t.dataset.v); else if (a === 'toggle') { MU.playing ? muStop() : muPlay(MU.mood); } else if (a === 'mute') { MU.muted = !MU.muted; muVol(); muSave(); muRender(); } else if (a === 'adapt') { MU.adapt = t.checked; muSave(); if (MU.playing) muPlay(MU.mood); } });
+  document.addEventListener('input', e => { if (e.target.dataset.mu === 'vol') { MU.vol = e.target.value / 100; muVol(); muSave(); } });
+  document.addEventListener('visibilitychange', () => { if (!MU.ctx) return; if (document.hidden) { MU.wasPlaying = MU.playing; if (MU.playing) MU.ctx.suspend(); } else if (MU.wasPlaying && MU.playing) MU.ctx.resume(); });
+  document.getElementById('projSel').addEventListener('change', () => { if (MU.playing) setTimeout(() => muPlay(MU.mood), 50); else muRender(); });
+}
+
+// ---------- campaña con IA ----------
+async function aiSes() {
+  const p = cur(); ui.busy = 'ses'; busy(1); render();
+  try {
+    const prev = p.sesiones.slice().sort((a, b) => (a.num || 0) - (b.num || 0)).map(s => `Sesión ${s.num} (${s.estado}): ${s.titulo}. ${clip(s.resumen + ' ' + s.resultado, 240)}`).join('\n') || '(ninguna todavía)';
+    const q = p.misiones.filter(m => m.estado === 'activa' || m.estado === 'pendiente').map(m => `${m.titulo} [${m.estado}]: ${clip(m.objetivo, 120)}`).join('\n') || '(ninguna)';
+    const user = `${ctxHead(p)}\n\nSESIONES ANTERIORES:\n${prev}\n\nMISIONES ABIERTAS:\n${q}\n\nTAREA: Propón la siguiente sesión de juego (unas 3-4 horas): continúa la campaña, usa ganchos y misiones abiertas si los hay, e incluye 4-6 escenas variadas (exploración, social, combate o tensión) con PNJ y lugares existentes. Devuelve {"titulo":"","resumen":"planteamiento en 2-3 frases","escenas":"escenas numeradas en texto plano, con pistas y posibles giros","elementos":["nombres exactos de PNJ, lugares o facciones que aparecen"]}`;
+    const d = await aiJSON(sysBase(), user, 0.9);
+    const ids = [].concat(d.elementos || []).map(n => findByName(p, str(n))).filter(Boolean).map(e => e.id);
+    const s = { id: uid(), num: Math.max(0, ...p.sesiones.map(x => x.num || 0)) + 1, titulo: str(d.titulo) || 'Nueva sesión', fecha: '', estado: 'planificada', resumen: str(d.resumen), escenas: str(d.escenas), resultado: '', ents: [...new Set(ids)] };
+    p.sesiones.push(s); saveNow(); toast('Sesión propuesta'); ui.busy = null; busy(0); render(); openDrawer('ses', s.id); return;
+  } catch (e) { toast(e.message, 1); }
+  ui.busy = null; busy(0); render();
+}
+async function aiQuest() {
+  const p = cur(); ui.busy = 'quest'; busy(1); render();
+  try {
+    const have = p.misiones.map(m => m.titulo).join('; ') || 'ninguna';
+    const user = `${ctxHead(p)}\n\nMISIONES YA EXISTENTES: ${have}\n\nTAREA: Crea una misión nueva y distinta, jugable en una o dos sesiones, ligada a elementos existentes. Devuelve {"titulo":"","objetivo":"","recompensa":"","dador":"nombre exacto de un PNJ o facción existente","lugar":"nombre exacto de un lugar existente","notas":"giros, pistas y obstáculos para el máster"}`;
+    const d = await aiJSON(sysBase(), user, 0.95);
+    const m = { id: uid(), titulo: str(d.titulo) || 'Misión nueva', estado: 'pendiente', dador: (findByName(p, str(d.dador)) || {}).id || '', lugar: (findByName(p, str(d.lugar)) || {}).id || '', objetivo: str(d.objetivo), recompensa: str(d.recompensa), notas: str(d.notas) };
+    p.misiones.push(m); saveNow(); toast('Misión creada');
+  } catch (e) { toast(e.message, 1); }
+  ui.busy = null; busy(0); render();
+}
+
+// ---------- documento / exportación ----------
+function buildDoc(p, o) {
+  const B = []; const h1 = t => B.push({ t: 'h1', x: t }), h2 = t => B.push({ t: 'h2', x: t }), P = t => t && B.push({ t: 'p', x: t }), M = t => t && B.push({ t: 'meta', x: t }), LI = t => B.push({ t: 'li', x: t }), S = t => t && o.secretos && B.push({ t: 'secret', x: t });
+  const w = p.ents.find(e => e.type === 'mundo');
+  if (w) { h1('El mundo: ' + w.name); M(w.summary); P(w.body); S(w.secreto); }
+  const entBlock = e => { h2(e.name); const meta = [e.tags.join(', '), e.fecha, e.estado && o.campana ? 'Estado: ' + e.estado : ''].filter(Boolean).join(' · '); M(meta); if (e.summary) P(e.summary); P(e.body); const r = relText(p, e); if (r) M('Relaciones: ' + r); S(e.secreto); };
+  for (const t of WORLD_TYPES) { let L = p.ents.filter(e => e.type === t); if (!L.length) continue; if (t === 'evento') L = L.slice().sort((a, b) => (a.orden || 0) - (b.orden || 0)); h1(TYPES[t].plural); L.forEach(entBlock); }
+  const g = p.ents.filter(e => e.type === 'guia');
+  if (o.guia && g.length) { h1('Guía del máster'); g.forEach(e => { h2(e.name); P(e.body); }); }
+  if (o.campana && (p.sesiones.length || p.misiones.length)) {
+    h1('Campaña');
+    if (p.sesiones.length) { h2('Sesiones'); p.sesiones.slice().sort((a, b) => (a.num || 0) - (b.num || 0)).forEach(s => { B.push({ t: 'h3', x: `Sesión ${s.num}: ${s.titulo} (${s.estado}${s.fecha ? ', ' + s.fecha : ''})` }); P(s.resumen); P(s.escenas); if ((s.ents || []).length) M('Aparecen: ' + s.ents.map(nm).join(', ')); if (s.resultado) P('Resultado: ' + s.resultado); }); }
+    if (p.misiones.length) { h2('Misiones'); QEST.forEach(([k, l]) => p.misiones.filter(m => m.estado === k).forEach(m => { B.push({ t: 'h3', x: `${m.titulo} [${k}]` }); P(m.objetivo); M([m.dador ? 'Da la misión: ' + nm(m.dador) : '', m.lugar ? 'Lugar: ' + nm(m.lugar) : '', m.recompensa ? 'Recompensa: ' + m.recompensa : ''].filter(Boolean).join(' · ')); P(m.notas); })); }
+    const tr = p.ents.filter(e => e.estado || e.notasCamp); if (tr.length) { h2('Seguimiento'); tr.forEach(e => LI(`${e.name} (${TYPES[e.type].label}): ${e.estado || '—'}${e.notasCamp ? ' · ' + e.notasCamp : ''}`)); }
+  }
+  return { title: p.name, premise: p.premise, blocks: B };
+}
+function toMarkdown(p, o) {
+  const d = buildDoc(p, o); const out = ['# ' + d.title, ''];
+  if (d.premise) out.push('> ' + d.premise.replace(/\n/g, ' '), '');
+  out.push('_Creado con Forja de Mundos · ' + new Date().toLocaleDateString('es-ES') + '_', '');
+  for (const b of d.blocks) {
+    if (b.t === 'h1') out.push('', '## ' + b.x, ''); else if (b.t === 'h2') out.push('', '### ' + b.x, ''); else if (b.t === 'h3') out.push('', '#### ' + b.x, '');
+    else if (b.t === 'meta') out.push('_' + b.x.replace(/_/g, ' ') + '_', ''); else if (b.t === 'li') out.push('- ' + b.x); else if (b.t === 'secret') out.push('> **🤫 Secreto del máster:** ' + b.x.replace(/\n+/g, ' '), ''); else out.push(b.x, '');
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n');
+}
+const slug = s => norm(s).replace(/ /g, '-').slice(0, 50) || 'universo';
+function download(name, blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+const pdfSafe = s => String(s || '').replace(/[‘’‚]/g, "'").replace(/[“”„]/g, '"').replace(/[–—−]/g, '-').replace(/…/g, '...').replace(/[•·▪]/g, '-').replace(/→/g, '->').replace(/[\u00A0\u2009\u202F]/g, ' ').replace(/[^\n\u0020-\u007E\u00A1-\u00FF]/g, '');
+async function loadPDFLib() { if (window.jspdf) return window.jspdf.jsPDF; await new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload = res; s.onerror = () => rej(new Error('No se pudo cargar el generador de PDF (¿sin conexión?). Usa Markdown o JSON.')); document.head.appendChild(s); }); return window.jspdf.jsPDF; }
+async function buildPdf(p, o) {
+  const J = await loadPDFLib(); const doc = new J({ unit: 'mm', format: 'a4' }); const W = 210, H = 297, M = 18, CW = W - 2 * M, FOOT = H - 14;
+  const d = buildDoc(p, o); const toc = [];
+  doc.setFillColor(11, 16, 32); doc.rect(0, 0, W, H, 'F'); doc.setFillColor(45, 212, 191); doc.rect(0, 0, W, 3, 'F'); doc.rect(M, 92, 28, 1.6, 'F');
+  doc.setTextColor(232, 236, 248); doc.setFont('helvetica', 'bold'); doc.setFontSize(32); doc.text(doc.splitTextToSize(pdfSafe(d.title), CW), M, 112);
+  const w = p.ents.find(e => e.type === 'mundo'); let y = 112 + 14 * Math.max(1, doc.splitTextToSize(pdfSafe(d.title), CW).length);
+  if (w && w.summary) { doc.setFont('helvetica', 'italic'); doc.setFontSize(14); doc.setTextColor(251, 191, 36); const l = doc.splitTextToSize(pdfSafe(w.summary), CW); doc.text(l, M, y); y += l.length * 6.5 + 4; }
+  if (d.premise) { doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(147, 160, 196); doc.text(doc.splitTextToSize(pdfSafe(d.premise), CW), M, y); }
+  doc.setFontSize(10); doc.setTextColor(45, 212, 191); doc.text('Universo de rol · Guía del máster · Forja de Mundos', M, H - 22); doc.setTextColor(147, 160, 196); doc.text(new Date().toLocaleDateString('es-ES'), M, H - 16);
+  doc.addPage(); const tocPage = doc.getNumberOfPages(); doc.addPage(); y = M;
+  doc.setTextColor(30, 30, 40);
+  const need = h => { if (y + h > FOOT - 4) { doc.addPage(); y = M; } };
+  for (const b of d.blocks) {
+    const x = pdfSafe(b.x);
+    if (b.t === 'h1') { if (y > M + 2) { doc.addPage(); y = M; } toc.push([x, doc.getNumberOfPages()]); doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(15, 118, 110); const l = doc.splitTextToSize(x, CW); doc.text(l, M, y + 7); y += l.length * 8.5 + 1; doc.setDrawColor(45, 212, 191); doc.setLineWidth(.6); doc.line(M, y, M + 40, y); y += 7; }
+    else if (b.t === 'h2') { need(16); y += 4; doc.setFont('helvetica', 'bold'); doc.setFontSize(13.5); doc.setTextColor(20, 30, 60); const l = doc.splitTextToSize(x, CW); doc.text(l, M, y + 5); y += l.length * 6 + 2.5; }
+    else if (b.t === 'h3') { need(12); y += 2; doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(60, 70, 100); const l = doc.splitTextToSize(x, CW); doc.text(l, M, y + 4); y += l.length * 5 + 2; }
+    else if (b.t === 'meta') { doc.setFont('helvetica', 'italic'); doc.setFontSize(9); doc.setTextColor(110, 120, 150); for (const ln of doc.splitTextToSize(x, CW)) { need(4.4); doc.text(ln, M, y + 3); y += 4.2; } y += 1.5; }
+    else if (b.t === 'li') { doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(30, 30, 40); let first = true; for (const ln of doc.splitTextToSize(x, CW - 5)) { need(5); if (first) doc.text('-', M, y + 4); doc.text(ln, M + 5, y + 4); first = false; y += 4.8; } y += 1; }
+    else if (b.t === 'secret') { doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); const ls = doc.splitTextToSize('Secreto del master: ' + x, CW - 8); for (const ln of ls) { need(5); doc.setFillColor(255, 244, 214); doc.rect(M, y, CW, 4.9, 'F'); doc.setFillColor(245, 158, 11); doc.rect(M, y, 1.2, 4.9, 'F'); doc.setTextColor(90, 55, 0); doc.text(ln, M + 4, y + 3.7); y += 4.9; } y += 3; }
+    else { doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(30, 30, 40); for (const par of x.split(/\n+/)) { for (const ln of doc.splitTextToSize(par, CW)) { need(5); doc.text(ln, M, y + 4); y += 4.8; } y += 1.8; } }
+  }
+  doc.setPage(tocPage); doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(15, 118, 110); doc.text('Contenido', M, M + 7); let ty = M + 20; doc.setFontSize(11.5);
+  toc.forEach(([t, pg]) => { doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 30, 40); doc.text(t, M, ty); doc.text(String(pg), W - M, ty, { align: 'right' }); doc.setDrawColor(210, 215, 230); doc.setLineWidth(.15); doc.line(M, ty + 1.8, W - M, ty + 1.8); ty += 8.5; });
+  const n = doc.getNumberOfPages(); for (let i = 2; i <= n; i++) { doc.setPage(i); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(140, 150, 175); doc.text(pdfSafe(p.name), M, H - 8); doc.text(String(i), W - M, H - 8, { align: 'right' }); }
+  return doc;
+}
+function expOpts() { return Object.assign({ secretos: true, guia: true, campana: true }, ui.exp || {}); }
+function exportJSON(p) { return JSON.stringify({ app: 'forja-de-mundos', version: 1, exportado: new Date().toISOString(), proyecto: p }, null, 1); }
+function importJSON(txt) {
+  const d = JSON.parse(txt); const q = d && d.app === 'forja-de-mundos' ? d.proyecto : d; if (!q || !Array.isArray(q.ents)) throw new Error('El archivo no parece un universo de Forja de Mundos.');
+  const p = Object.assign(newProject(q.name), q, { id: uid() }); p.name = (q.name || 'Universo') + ' (importado)';
+  p.ents = q.ents.map(e => Object.assign({ id: uid(), type: 'lugar', name: 'Sin nombre', summary: '', body: '', secreto: '', tags: [], fecha: '', orden: 0, rels: [], locked: false, estado: '', notasCamp: '' }, e)).filter(e => TYPES[e.type]);
+  p.ents.forEach(e => { e.rels = (Array.isArray(e.rels) ? e.rels : []).map(r => ({ to: r.to || null, name: str(r.name), label: str(r.label) })); });
+  p.ajustes = Object.assign(newProject().ajustes, q.ajustes || {}); p.sesiones = q.sesiones || []; p.misiones = q.misiones || []; p.issues = q.issues || []; p.ignored = q.ignored || [];
+  DB.projects.push(p); DB.currentId = p.id; resolveRels(p); saveNow(); return p;
+}
+
+// ---------- universo de ejemplo ----------
+function loadExample() {
+  const p = newProject('Las Islas Cenicientas'); p.premise = 'Un archipiélago construido sobre un volcán dormido, donde la magia (la Brasa) se paga con recuerdos.';
+  Object.assign(p.ajustes, { tono: 35, magia: 55, tecnologia: 40, crudeza: 40, escala: 'región', temas: ['Intriga política', 'Misterio', 'Exploración'], jugadores: '4' }); DB.projects.push(p); DB.currentId = p.id;
+  const E = (type, name, summary, body, secreto, rels, x) => { const e = addEnt(p, type, Object.assign({ name, summary, body, secreto: secreto || '' }, x || {})); (rels || []).forEach(r => addRel(e, r[0], r[1])); return e; };
+  E('mundo', 'Las Islas Cenicientas', 'Doce islas de ceniza y mar sobre un volcán dormido.', 'Un archipiélago de doce islas nacidas de la ceniza de un volcán que lleva trescientos años dormido. Sus gentes viven del comercio, la pesca y la Brasa, una magia que arde dentro de quien la usa y le cuesta un recuerdo cada vez. La luz de los faros mantiene alejada la Niebla Gris que cubre el mar abierto.\n\nPrincipios del mundo: la magia siempre cuesta memoria; la luz es poder; nadie recuerda cómo era el mundo antes del Apagón.', 'El volcán no duerme: se alimenta de los recuerdos que se pierden con cada conjuro.', []);
+  E('lugar', 'Puerto Hueco', 'Capital del archipiélago, construida dentro de la caldera.', 'Ciudad escalonada en el cráter hundido, con calles de piedra negra y cientos de faroles de cristal. Aquí se juntan mercaderes, nobles y faroleros. El aire huele a azufre y a pescado ahumado.', 'Bajo el mercado central hay una galería que baja hasta el corazón del volcán.', [], { tags: ['ciudad'] });
+  E('lugar', 'Isla de Humo', 'Isla-monasterio con el faro más antiguo.', 'Roca humeante coronada por el Faro Primero, cuya llama nunca se ha apagado. Los monjes de la Última Llama guardan sus archivos de recuerdos.', 'El faro funciona con recuerdos robados a peregrinos.', [['Puerto Hueco', 'a un día de navegación de']], { tags: ['templo'] });
+  E('lugar', 'Las Fraguas Sumergidas', 'Ruinas de la ciudad que se hundió con el Apagón.', 'Torres de metal negro bajo aguas poco profundas, visibles con marea baja. Quien entra vuelve con objetos extraños y con huecos en la memoria.', 'Las Fraguas fabricaban Brasas Madre, el origen de toda la magia actual.', [['Puerto Hueco', 'a media jornada de']], { tags: ['ruina'] });
+  E('evento', 'El Apagón del Mar', 'Todas las luces del mundo antiguo se apagaron a la vez.', 'Durante una noche, la magia y las luces del mundo antiguo se extinguieron y la Niebla Gris cubrió el mar. Nadie recuerda la causa.', 'Fue un sacrificio deliberado de las Fraguas para contener al volcán.', [['Las Fraguas Sumergidas', 'implica a']], { fecha: 'Año -300', orden: 1 });
+  E('evento', 'La Fundación de Puerto Hueco', 'Los supervivientes encienden el primer faro en la caldera.', 'Los supervivientes del Apagón fundan la ciudad en la caldera y encienden el primer farol. Empieza el calendario actual.', '', [['Puerto Hueco', 'implica a']], { fecha: 'Año 0', orden: 2 });
+  E('evento', 'El Hundimiento de las Fraguas', 'Las Fraguas se hunden bajo el mar.', 'Tras una revuelta, las Fraguas desaparecen bajo las olas. Los gremios se reparten su legado.', '', [['Las Fraguas Sumergidas', 'implica a']], { fecha: 'Año 214', orden: 3 });
+  E('faccion', 'Gremio de Faroleros', 'Guardianes de la luz que mantiene a raya la Niebla.', 'Gremio popular que mantiene los faroles y faros del archipiélago. Gozan del respeto del pueblo y de la desconfianza de los nobles.\n\nObjetivos: mantener la luz encendida y su independencia.', 'Ocultan que el aceite de los faroles se está agotando.', [['Puerto Hueco', 'con sede en'], ['Casa Ceniza', 'rival de']], { tags: ['gremio'] });
+  E('faccion', 'Casa Ceniza', 'Familia noble que gobierna Puerto Hueco.', 'Linaje que se dice descendiente de los fundadores. Controla el puerto y los impuestos.\n\nObjetivos: controlar el suministro de aceite y de Brasa.', 'Financian expediciones ilegales a las Fraguas.', [['Puerto Hueco', 'con sede en'], ['Gremio de Faroleros', 'rival de']], { tags: ['familia'] });
+  E('pnj', 'Ilsa Marrón', 'Farolera mayor de Puerto Hueco, terca y generosa.', 'Mujer de cuarenta años, manos quemadas y voz ronca. Habla poco y mide mucho.\n\nPersonalidad: leal, desconfiada con los nobles.\n\nMotivación: salvar la luz de los faros.', 'Ha olvidado a su hijo por abusar de la Brasa y no lo sabe.', [['Gremio de Faroleros', 'miembro de'], ['Puerto Hueco', 'se encuentra en'], ['Don Aurelio Ceniza', 'rival de']], { tags: ['farolera'] });
+  E('pnj', 'Don Aurelio Ceniza', 'Cabeza de la Casa Ceniza, amable y calculador.', 'Hombre elegante de sonrisa fácil y mirada fría. Siempre ofrece un trato.\n\nPersonalidad: encantador y paciente.\n\nMotivación: asegurar el aceite y la Brasa para su casa.', 'Es el patrón de la expedición que saqueó las Fraguas.', [['Casa Ceniza', 'miembro de'], ['Puerto Hueco', 'se encuentra en']], { tags: ['noble'] });
+  E('cultura', 'Culto de la Última Llama', 'Orden religiosa que venera la luz como memoria del mundo.', 'Los monjes creen que cada llama guarda un recuerdo del mundo antiguo. Celebran la Vigilia de la Ceniza cada aniversario del Apagón.\n\nCreencias: quien olvida, se apaga.', 'La orden sabe que el volcán se alimenta de recuerdos.', [['Isla de Humo', 'presente en']], { tags: ['religión'] });
+  E('regla', 'La Brasa', 'La magia de las islas: arde por dentro y cuesta recuerdos.', 'Quien usa la Brasa canaliza luz y calor con la voluntad. Cada conjuro significativo consume un recuerdo del lanzador, elegido por la Brasa.\n\nLímites: no puede crear materia ni revivir muertos.\n\nCoste y riesgos: pérdida de memoria; el abuso deja vacío al lanzador.', 'Los recuerdos perdidos alimentan al volcán.', [], { tags: ['magia'] });
+  E('conflicto', 'La disputa por el aceite', 'Casa Ceniza y los Faroleros se pelean por el último aceite de ballena.', 'El aceite escasea y la Casa lo acapara. Los faroles empiezan a apagarse en las islas pobres.\n\nSi nadie interviene: la Niebla avanzará sobre las islas menores.', '', [['Casa Ceniza', 'enfrenta a'], ['Gremio de Faroleros', 'enfrenta a']]);
+  E('gancho', 'El farol que se apagó solo', 'Un farol del puerto se apaga y deja un vacío en la memoria de quienes lo miran.', 'Ilsa Marrón contrata a los jugadores para investigar un farol que se apagó sin aceite ni viento.\n\nComplicación: alguien ha manipulado la llama.\n\nRecompensa: la gratitud del Gremio y un favor de Ilsa.', 'Fue una prueba de un aparato robado a las Fraguas.', [['Ilsa Marrón', 'implica a'], ['Puerto Hueco', 'ocurre en'], ['La disputa por el aceite', 'parte del conflicto']]);
+  E('guia', 'Cómo usar este universo', '', 'Empieza en Puerto Hueco con el gancho del farol apagado. Presenta la Brasa pronto y haz que el primer conjuro de un PNJ cueste un recuerdo visible. Mantén el misterio del volcán hasta la segunda mitad de la campaña.', '');
+  E('guia', 'Tono y estilo de narración', '', 'Narra con olor a azufre y luz de farol. El tono es melancólico con destellos de esperanza: la pérdida de memoria es el tema central. Usa pausas y silencios cuando alguien olvida algo.', '');
+  p.ents.filter(e => e.type === 'guia').forEach(e => e.summary = clip(e.body, 140));
+  p.sesiones.push({ id: uid(), num: 1, titulo: 'El farol que se apagó solo', fecha: '', estado: 'planificada', resumen: 'Los jugadores llegan a Puerto Hueco y Ilsa Marrón les pide ayuda.', escenas: '1. Llegada al puerto y encuentro con Ilsa.\n2. Inspección del farol apagado.\n3. Primera señal de la Casa Ceniza.', resultado: '', ents: [p.ents.find(e => e.name === 'Ilsa Marrón').id, p.ents.find(e => e.name === 'Puerto Hueco').id] });
+  p.misiones.push({ id: uid(), titulo: 'Investigar el farol apagado', estado: 'activa', dador: p.ents.find(e => e.name === 'Ilsa Marrón').id, lugar: p.ents.find(e => e.name === 'Puerto Hueco').id, objetivo: 'Descubrir por qué se apagó el farol de la plaza del puerto.', recompensa: 'Un favor de Ilsa Marrón', notas: '' });
+  resolveRels(p); saveNow(); ui.tab = 'universo'; render(); toast('Universo de ejemplo cargado');
+}
+
+// ---------- eventos ----------
+document.addEventListener('click', async ev => {
+  const t = ev.target.closest('[data-act]'); if (!t) return; const a = t.dataset.act, v = t.dataset.v, p = cur();
+  const done = () => { saveNow(); render(); };
+  switch (a) {
+    case 'tab': ui.tab = v; render(); window.scrollTo(0, 0); break;
+    case 'filter': ui.filter = v; render(); break;
+    case 'mode': ui.mode = v; if (v === 'tl') ui.filter = 'evento'; render(); break;
+    case 'sub': ui.sub = v; render(); break;
+    case 'qf': ui.qfilter = v; render(); break;
+    case 'open': openDrawer('ent', v); break;
+    case 'openSes': openDrawer('ses', v); break;
+    case 'openQuest': openDrawer('mis', v); break;
+    case 'closeDrawer': closeDrawer(); break;
+    case 'newProject': { const n = prompt('Nombre del nuevo universo', 'Universo nuevo'); if (n === null) break; const q = newProject(n.trim() || 'Universo nuevo'); DB.projects.push(q); DB.currentId = q.id; ui.tab = 'ajustes'; ui.stageSt = {}; done(); break; }
+    case 'surprise': p.premise = PREMISAS[Math.floor(Math.random() * PREMISAS.length)]; done(); break;
+    case 'tema': { const L = p.ajustes.temas; const i = L.indexOf(v); if (i >= 0) L.splice(i, 1); else L.push(v); done(); break; }
+    case 'forge': {
+      const ids = [...document.querySelectorAll('[data-stage]')].filter(x => x.checked).map(x => x.dataset.stage); if (!ids.length) { toast('Marca al menos una etapa.', 1); break; }
+      const has = p.ents.some(e => ids.some(i => STAGES.find(s => s.id === i).type === e.type && !e.locked)); if (has && !confirm('Las etapas marcadas reemplazarán sus elementos no bloqueados. ¿Continuar?')) break;
+      ids.forEach(i => delete ui.stageSt[i]); const extra = ($('#extra') || {}).value || ''; await forge(ids, true, extra.trim()); break;
+    }
+    case 'example': loadExample(); break;
+    case 'newEnt': { if (v === 'mundo' && p.ents.some(e => e.type === 'mundo')) { openDrawer('ent', p.ents.find(e => e.type === 'mundo').id); break; } const e = addEnt(p, v, { name: 'Nuevo ' + TYPES[v].label.toLowerCase() }); done(); openDrawer('ent', e.id); break; }
+    case 'more': await addMore(v, 3, ''); break;
+    case 'regenGuide': await forge(['guia'], true, ''); break;
+    case 'regen': await regenEnt(ui.edit.id, ($('#instr') || {}).value.trim()); break;
+    case 'undo': { const pv = ui.prev[ui.edit.id]; const e = ent(ui.edit.id); if (pv && e) { Object.assign(e, pv); delete ui.prev[e.id]; done(); renderDrawer(); } break; }
+    case 'lock': { const e = ent(ui.edit.id); e.locked = !e.locked; done(); renderDrawer(); break; }
+    case 'dup': { const e = ent(ui.edit.id); const c = addEnt(p, e.type, JSON.parse(JSON.stringify(Object.assign({}, e, { id: undefined, locked: false, name: e.name + ' (copia)' })))); done(); openDrawer('ent', c.id); break; }
+    case 'delEnt': { const e = ent(ui.edit.id); if (!confirm('¿Eliminar "' + e.name + '"? Las relaciones que lo mencionan quedarán marcadas como rotas.')) break; removeEnts(p, [e]); ui.edit = null; $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); done(); break; }
+    case 'addRel': { const e = ent(ui.edit.id); const to = $('#rt').value; if (!to) { toast('Elige con qué elemento se relaciona.', 1); break; } const tg = ent(to); e.rels.push({ to, name: tg.name, label: $('#rl').value.trim() || 'relacionado con' }); saveNow(); renderDrawer(); break; }
+    case 'delRel': { const e = ent(ui.edit.id); e.rels.splice(Number(v), 1); saveNow(); renderDrawer(); break; }
+    case 'newSes': { const s = { id: uid(), num: Math.max(0, ...p.sesiones.map(x => x.num || 0)) + 1, titulo: 'Nueva sesión', fecha: '', estado: 'planificada', resumen: '', escenas: '', resultado: '', ents: [] }; p.sesiones.push(s); done(); openDrawer('ses', s.id); break; }
+    case 'aiSes': await aiSes(); break;
+    case 'delSes': if (confirm('¿Eliminar la sesión?')) { p.sesiones = p.sesiones.filter(s => s.id !== ui.edit.id); closeDrawer(); saveNow(); } break;
+    case 'delSesEnt': { const s = p.sesiones.find(x => x.id === ui.edit.id); s.ents = s.ents.filter(i => i !== v); saveNow(); renderDrawer(); break; }
+    case 'newQuest': { const m = { id: uid(), titulo: 'Nueva misión', estado: 'pendiente', dador: '', lugar: '', objetivo: '', recompensa: '', notas: '' }; p.misiones.push(m); done(); openDrawer('mis', m.id); break; }
+    case 'questFromHook': { ui.hookPick = !ui.hookPick; render(); break; }
+    case 'aiQuest': await aiQuest(); break;
+    case 'delQuest': if (confirm('¿Eliminar la misión?')) { p.misiones = p.misiones.filter(s => s.id !== ui.edit.id); closeDrawer(); saveNow(); } break;
+    case 'aiCheck': await aiCheck(); break;
+    case 'ignoreIssue': p.ignored.push(v); p.issues = (p.issues || []).filter(i => i.key !== v); done(); break;
+    case 'fixIssue': { const i = (p.issues || []).find(x => x.key === v); const e = i && i.elementos.map(n => findByName(p, n)).find(x => x && !x.locked); if (!e) { toast('Los elementos implicados están bloqueados o no existen.', 1); break; } await regenEnt(e.id, 'Corrige esta incoherencia detectada: ' + i.titulo + '. ' + i.texto + ' Sugerencia: ' + i.sugerencia); p.issues = p.issues.filter(x => x.key !== v); done(); toast('Corregido "' + e.name + '". Revisa el resultado y vuelve a comprobar.'); break; }
+    case 'exPdf': try { busy(1); const d = await buildPdf(p, expOpts()); d.save(slug(p.name) + '.pdf'); toast('PDF generado'); } catch (e) { toast(e.message, 1); } busy(0); break;
+    case 'exMd': download(slug(p.name) + '.md', new Blob([toMarkdown(p, expOpts())], { type: 'text/markdown;charset=utf-8' })); toast('Markdown descargado'); break;
+    case 'exJson': download(slug(p.name) + '.json', new Blob([exportJSON(p)], { type: 'application/json' })); toast('JSON descargado'); break;
+    case 'delProject': if (confirm('¿Eliminar "' + p.name + '" para siempre? Exporta antes un JSON si quieres conservarlo.')) { DB.projects = DB.projects.filter(x => x.id !== p.id); if (!DB.projects.length) DB.projects.push(newProject('Mi primer universo')); DB.currentId = DB.projects[0].id; ui.tab = 'ajustes'; done(); } break;
+  }
+});
+function onField(t) {
+  const p = cur(); let tgt;
+  if (t.dataset.f && ui.edit) { const k = ui.edit.k; tgt = k === 'ent' ? ent(ui.edit.id) : k === 'ses' ? p.sesiones.find(x => x.id === ui.edit.id) : p.misiones.find(x => x.id === ui.edit.id); const f = t.dataset.f; if (!tgt) return; if (f === 'tags') tgt.tags = t.value.split(',').map(s => s.trim()).filter(Boolean); else if (f === 'orden' || f === 'num') tgt[f] = Number(t.value) || 0; else tgt[f] = t.value; save(); return; }
+  if (t.dataset.proj) { p[t.dataset.proj] = t.value; save(); if (t.dataset.proj === 'name') { $('#projSel').selectedOptions[0].textContent = t.value; } return; }
+  if (t.dataset.aj) { p.ajustes[t.dataset.aj] = t.value; save(); return; }
+  if (t.dataset.slider) { p.ajustes[t.dataset.slider] = Number(t.value); updSliders(); save(); return; }
+}
+function updSliders() { const p = cur(), a = p.ajustes; const M = { tono: L_TONO, magia: L_MAGIA, tecnologia: L_TEC, crudeza: L_CRU }; for (const k in M) { const el = $('#v-' + k); if (el) el.textContent = band(a[k], M[k]); } }
+document.addEventListener('input', ev => { const t = ev.target; if (t.id === 'q') { ui.q = t.value; const pos = t.selectionStart; render(); const q = $('#q'); if (q) { q.focus(); q.setSelectionRange(pos, pos); } return; } onField(t); });
+document.addEventListener('change', async ev => {
+  const t = ev.target, p = cur();
+  if (t.id === 'projSel') { DB.currentId = t.value; ui.stageSt = {}; ui.edit = null; $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); saveNow(); render(); return; }
+  if (t.dataset.stage) { ui.sel = ui.sel || {}; ui.sel[t.dataset.stage] = t.checked; return; }
+  if (t.dataset.track) { const e = ent(t.dataset.track); e.estado = t.value; saveNow(); return; }
+  if (t.id === 'sesAdd' && t.value) { const s = p.sesiones.find(x => x.id === ui.edit.id); s.ents = (s.ents || []).concat(t.value); saveNow(); renderDrawer(); return; }
+  if (t.id === 'hookSel' && t.value) { const g = ent(t.value); const pn = g.rels.find(r => r.to && (ent(r.to) || {}).type === 'pnj'), lu = g.rels.find(r => r.to && (ent(r.to) || {}).type === 'lugar'); p.misiones.push({ id: uid(), titulo: g.name, estado: 'pendiente', dador: pn ? pn.to : '', lugar: lu ? lu.to : '', objetivo: g.summary || g.body, recompensa: '', notas: g.body }); ui.hookPick = false; saveNow(); render(); toast('Misión creada desde el gancho'); return; }
+  if (t.id === 'o-sec' || t.id === 'o-gui' || t.id === 'o-cam') { ui.exp = { secretos: $('#o-sec').checked, guia: $('#o-gui').checked, campana: $('#o-cam').checked }; return; }
+  if (t.id === 'imp' && t.files[0]) { try { const q = importJSON(await t.files[0].text()); toast('Importado: ' + q.name); ui.tab = 'universo'; render(); } catch (e) { toast(e.message || 'No se pudo importar.', 1); } return; }
+  if (t.dataset.f || t.dataset.aj || t.dataset.proj) onField(t);
+});
+// selector de gancho en misiones
+const _vc = vCampana; vCampana = function (p) { let h = _vc(p); if (ui.tab === 'campana' && ui.sub === 'misiones' && ui.hookPick) { const g = p.ents.filter(e => e.type === 'gancho'); h = h.replace('<div class="kan">', `<div class="card" style="margin-bottom:12px"><label>Elige el gancho que quieres convertir en misión</label><select id="hookSel"><option value="">—</option>${g.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('')}</select>${g.length ? '' : '<p class="mut sm">Aún no hay ganchos.</p>'}</div><div class="kan">`); } return h; };
+
+// ---------- inicio ----------
+function init() {
+  load();
+  const R = $('#runes'); const g = ['✦', '◈', '⟡', '☉', '✧', '⌘']; for (let i = 0; i < 12; i++) { const s = document.createElement('i'); s.textContent = g[i % g.length]; s.style.left = (Math.random() * 100) + '%'; s.style.animationDuration = (18 + Math.random() * 22) + 's'; s.style.animationDelay = (-Math.random() * 30) + 's'; s.style.fontSize = (14 + Math.random() * 20) + 'px'; R.appendChild(s); }
+  if (cur().ents.length) ui.tab = 'universo';
+  render(); updSliders(); initMusicUI();
+  window.__forja = { renderMood, wavBytes, Engine, MOODS, MU, DB: () => DB, cur, buildPdf, toMarkdown, exportJSON, importJSON, loadExample, localIssues, expOpts };
+}
+const _r = render; render = function () { _r(); updSliders(); };
+init();
+</script>
+</body>
+</html>
