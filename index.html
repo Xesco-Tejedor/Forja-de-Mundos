@@ -209,24 +209,33 @@ function fromAI(type, o) {
 }
 
 // ---------- IA ----------
+let aiPref = localStorage.getItem('forja-ai-provider') || 'auto';
+let freeModel = localStorage.getItem('forja-ai-model') || 'openrouter/free';
+let aiUsed = '';
 async function ai(system, user, temp) {
-  const body = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { temperature: temp == null ? 0.9 : temp, responseMimeType: 'application/json' } };
-  const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), 150000);
-  let r, txt, d;
-  for (let k = 0; k < 4; k++) {
-    try { r = await fetch(PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctrl.signal }); }
-    catch (e) { clearTimeout(tm); throw new Error(e.name === 'AbortError' ? 'La IA ha tardado demasiado. Inténtalo de nuevo.' : 'No se pudo contactar con la IA (¿sin conexión?). Puedes seguir editando a mano.'); }
-    txt = await r.text(); d = null; try { d = JSON.parse(txt); } catch (e) { }
-    const busyAI = r.status === 503 || r.status === 500 || (d && d.error && /high demand|overloaded|unavailable/i.test(String(d.error.message || d.error)));
-    if (!busyAI || k === 3) break; await new Promise(res => setTimeout(res, 3000 * (k + 1)));
+  const body = { systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { temperature: temp == null ? 0.9 : temp, responseMimeType: 'application/json' }, freeModel };
+  const providers = aiPref === 'auto' ? ['gemini','openrouter'] : [aiPref];
+  for (let i = 0; i < providers.length; i++) {
+    const provider = providers[i], ctrl = new AbortController();
+    const tm = setTimeout(() => ctrl.abort(), 240000);
+    let r, d;
+    try { r = await fetch(PROXY + (provider === 'openrouter' ? 'openrouter' : ''), {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl.signal}); d = await r.json(); }
+    catch (e) { throw new Error(e.name === 'AbortError' ? 'La IA ha tardado demasiado. Inténtalo de nuevo.' : 'No se pudo contactar con la IA. Puedes seguir editando a mano.'); }
+    finally { clearTimeout(tm); }
+    if (!r.ok || d.error) {
+      const m = String(d.error && (d.error.message || d.error) || '');
+      if (i + 1 < providers.length && [429,503,500,502,404].includes(r.status)) { toast('Gemini no disponible. Probando OpenRouter gratuito…'); continue; }
+      if (r.status === 429) throw new Error(provider === 'openrouter' ? 'OpenRouter ha alcanzado un límite o está saturado (20 peticiones/min; 50/día sin comprar créditos, compartidas entre modelos). Espera y reintenta; cambiar de modelo no reinicia la cuota. Puedes seguir editando a mano.' : 'Gemini ha alcanzado su cuota o está saturado. Cambia a OpenRouter gratuito o sigue editando a mano.');
+      throw new Error((provider === 'openrouter' ? 'OpenRouter: ' : 'Gemini: ') + clip(m,200));
+    }
+    const out = ((d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || []).map(x => x.text || '').join('');
+    if (!out) throw new Error('La IA no devolvió texto. Reformula e inténtalo otra vez.');
+    aiUsed = provider === 'openrouter' ? 'OpenRouter · ' + (d.model || freeModel) : 'Gemini';
+    const status = document.getElementById('ai-status'); if (status) status.textContent = 'Última respuesta: ' + aiUsed;
+    return out;
   }
-  clearTimeout(tm);
-  if (!d) throw new Error('Respuesta inesperada de la IA (código ' + r.status + ').');
-  if (!r.ok || d.error) { const m = d.error && (d.error.message || d.error) || ''; if (r.status === 429 || /quota|exhaust|rate/i.test(String(m))) { const mm = String(m).match(/retry in (?:(\d+)h)?(?:(\d+)m)?/i); const wait = mm && (mm[1] || mm[2]) ? ' Vuelve a estar disponible en ' + (mm[1] ? mm[1] + ' h ' : '') + (mm[2] ? mm[2] + ' min' : '') + '.' : ''; throw new Error('Se ha agotado la cuota gratuita diaria de la IA (unas 20 peticiones al día).' + wait + ' Puedes seguir editando a mano.'); } if (r.status === 503 || /high demand/i.test(String(m))) throw new Error('La IA gratuita está saturada ahora mismo. Espera un minuto y reintenta.'); throw new Error('Error de la IA' + (m ? ': ' + clip(String(m), 140) : ' (código ' + r.status + ')') + '.'); }
-  const out = ((d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || []).map(x => x.text || '').join('');
-  if (!out) throw new Error('La IA no devolvió texto (quizá filtró el contenido). Reformula e inténtalo otra vez.');
-  return out;
 }
+
 function parseJSON(t) { t = t.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim(); try { return JSON.parse(t); } catch (e) { const m = t.match(/[\[{][\s\S]*[\]}]/); if (m) return JSON.parse(m[0]); throw e; } }
 async function aiJSON(sys, user, temp) { let last; for (let i = 0; i < 2; i++) { try { return parseJSON(await ai(sys, user, temp)); } catch (e) { last = e; if (!(e instanceof SyntaxError)) throw e; } } throw new Error('La IA devolvió un formato no válido. Inténtalo de nuevo.'); }
 
@@ -392,10 +401,13 @@ function vAjustes(p) {
   <label>Vetos y gustos de la mesa (opcional)</label><textarea data-aj="vetos" rows="2" placeholder="Sin elfos; mucho misterio; nada de violencia gráfica…">${esc(a.vetos)}</textarea></div>
   <div class="card">${slider('tono', 'Tono', 'Sombrío', 'Heroico', a.tono)}${slider('magia', 'Nivel de magia', 'Ninguna', 'Omnipresente', a.magia)}${slider('tecnologia', 'Nivel tecnológico', 'Edad de piedra', 'Futurista', a.tecnologia)}${slider('crudeza', 'Crudeza', 'Todos los públicos', 'Muy adulto', a.crudeza)}
   <p class="mut sm" style="margin-top:14px">Los ajustes se pueden cambiar en cualquier momento: afectan a lo que generes a partir de ahora y a las regeneraciones.</p></div></div>
+  <h3 class="h3 sec">Fuente de IA</h3><div class="card"><label for="ai-provider">Proveedor</label><select id="ai-provider" ${run ? 'disabled' : ''}>${[['auto','Automático: Gemini → OpenRouter gratuito'],['openrouter','OpenRouter: solo modelos gratuitos'],['gemini','Gemini']].map(([k,l])=>`<option value="${k}" ${aiPref===k?'selected':''}>${l}</option>`).join('')}</select>
+  <label for="ai-model">Modelo gratuito de OpenRouter</label><select id="ai-model" ${run ? 'disabled' : ''}>${[['openrouter/free','Automático gratuito (modelos disponibles con JSON)'],['google/gemma-4-31b-it:free','Gemma 4 31B · gratuito'],['nvidia/nemotron-3-super-120b-a12b:free','Nemotron 3 Super 120B · gratuito'],['apodex/apodex-1.1-mini:free','Apodex 1.1 Mini · gratuito']].map(([k,l])=>`<option value="${k}" ${freeModel===k?'selected':''}>${l}</option>`).join('')}</select>
+  <p class="mut sm">Nunca usa modelos de pago. Si un modelo concreto no está disponible, OpenRouter prueba otros gratuitos. Sin comprar créditos: 20 peticiones/minuto y 50/día en total para la cuenta, no por modelo. La disponibilidad y calidad varían. En automático, Gemini pasa a OpenRouter si alcanza su cuota o falla.</p><p class="mut sm">La clave queda en el servidor, nunca en tu navegador. Solo al usar IA se envían la premisa y el contexto del universo al proveedor elegido; evita datos personales sensibles. <a href="https://openrouter.ai/docs/api_reference/limits" target="_blank" rel="noopener">Límites de OpenRouter</a></p><p class="mut sm" id="ai-status">${aiUsed ? 'Última respuesta: '+esc(aiUsed) : 'Listo para generar'}</p></div>
   <h3 class="h3 sec">Etapas de generación</h3><div class="card">${stg}
   <label>Indicación extra para esta forja (opcional)</label><input id="extra" placeholder="Ej.: que haya un volcán importante; nombres de inspiración nórdica…">
   <div class="row" style="margin-top:12px"><button class="btn pri" data-act="forge" ${run ? 'disabled' : ''}>${run ? '<span class="spin"></span> Forjando…' : '⚒️ Forjar universo'}</button><button class="btn" data-act="example" ${run ? 'disabled' : ''}>📜 Cargar universo de ejemplo</button></div>
-  <div class="sw"><input type="checkbox" data-eco ${ui.eco === false ? '' : 'checked'}><label style="margin:0;font-size:13.5px;color:var(--txt)">Economizar cuota de IA: genera en 3 peticiones en vez de 10 (el plan gratuito permite unas 20 al día)</label></div><p class="mut sm">Las etapas marcadas reemplazan sus elementos <b>no bloqueados</b> (🔒 protege lo que ya te gusta). Cada etapa tarda unos segundos. La IA es gratuita y tiene cuota diaria.</p>
+  <div class="sw"><input type="checkbox" data-eco ${ui.eco === false ? '' : 'checked'}><label style="margin:0;font-size:13.5px;color:var(--txt)">Economizar cuota de IA: genera en 3 peticiones en vez de 10 (los límites dependen del proveedor)</label></div><p class="mut sm">Las etapas marcadas reemplazan sus elementos <b>no bloqueados</b> (🔒 protege lo que ya te gusta). Cada etapa tarda unos segundos. La IA es gratuita y tiene cuota diaria.</p>
   ${err ? `<p style="color:var(--red)">⚠️ ${esc(String(err).slice(4))} <button class="btn sm" data-act="forge">Reintentar</button></p>` : ''}</div>`;
 }
 
@@ -838,7 +850,8 @@ document.addEventListener('input', ev => { const t = ev.target; if (t.id === 'q'
 document.addEventListener('change', async ev => {
   const t = ev.target, p = cur();
   if (t.id === 'projSel') { DB.currentId = t.value; ui.stageSt = {}; ui.edit = null; $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); saveNow(); render(); return; }
-  if (t.dataset.eco !== undefined) { ui.eco = t.checked; return; }
+  if (t.id === 'ai-provider') { aiPref = t.value; localStorage.setItem('forja-ai-provider', aiPref); return; }
+  if (t.id === 'ai-model') { freeModel = t.value; localStorage.setItem('forja-ai-model', freeModel); return; }
   if (t.dataset.eco !== undefined) { ui.eco = t.checked; return; }
   if (t.dataset.stage) { ui.sel = ui.sel || {}; ui.sel[t.dataset.stage] = t.checked; return; }
   if (t.dataset.track) { const e = ent(t.dataset.track); e.estado = t.value; saveNow(); return; }
@@ -863,4 +876,4 @@ const _r = render; render = function () { _r(); updSliders(); };
 init();
 </script>
 </body>
-    </html>
+  </html>
